@@ -1,0 +1,100 @@
+import { Product } from '@/types/pos';
+
+export const CATEGORIES = [
+  { id: 'todos', name: 'Todos los Productos', emoji: '🛍️' },
+  { id: 'bebidas', name: 'Bebidas', emoji: '🥤' },
+  { id: 'snacks', name: 'Snacks / Comida', emoji: '🍔' },
+  { id: 'tecnologia', name: 'Tecnología', emoji: '💻' },
+  { id: 'papeleria', name: 'Papelería', emoji: '✏️' },
+];
+
+export const PRODUCTS: Product[] = [
+  {
+    id: 1,
+    name: 'Café Americano',
+    emoji: '☕',
+    price: 2500,
+    category: 'bebidas',
+    stock: 15,
+  },
+  {
+    id: 2,
+    name: 'Refresco de Cola',
+    emoji: '🥤',
+    price: 1800,
+    category: 'bebidas',
+    stock: 20,
+  },
+  {
+    id: 3,
+    name: 'Agua Mineral',
+    emoji: '💧',
+    price: 1200,
+    category: 'bebidas',
+    stock: 5,
+  },
+  {
+    id: 4,
+    name: 'Hamburguesa con Queso',
+    emoji: '🍔',
+    price: 5500,
+    category: 'snacks',
+    stock: 8,
+  },
+  {
+    id: 5,
+    name: 'Papas Fritas',
+    emoji: '🍟',
+    price: 2000,
+    category: 'snacks',
+    stock: 12,
+  },
+  {
+    id: 6,
+    name: 'Rebanada de Pastel',
+    emoji: '🍰',
+    price: 3000,
+    category: 'snacks',
+    stock: 4,
+  },
+  {
+    id: 7,
+    name: 'Mouse Inalámbrico',
+    emoji: '🖱️',
+    price: 15000,
+    category: 'tecnologia',
+    stock: 6,
+  },
+  {
+    id: 8,
+    name: 'Teclado Mecánico',
+    emoji: '⌨️',
+    price: 45000,
+    category: 'tecnologia',
+    stock: 3,
+  },
+  {
+    id: 9,
+    name: 'Audífonos Bluetooth',
+    emoji: '🎧',
+    price: 28000,
+    category: 'tecnologia',
+    stock: 0,
+  }, // Stock en 0 para probar deshabilitados
+  {
+    id: 10,
+    name: 'Cuaderno Universitario',
+    emoji: '📓',
+    price: 3500,
+    category: 'papeleria',
+    stock: 25,
+  },
+  {
+    id: 11,
+    name: 'Set de Bolígrafos (4 colores)',
+    emoji: '🖊️',
+    price: 1500,
+    category: 'papeleria',
+    stock: 50,
+  },
+];
