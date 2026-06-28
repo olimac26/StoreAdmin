@@ -1,4 +1,3 @@
-// hooks/use-pos.ts
 'use client';
 
 import { useState, useMemo } from 'react';

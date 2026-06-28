@@ -1,4 +1,3 @@
-// components/pos/ProductGrid.tsx
 'use client';
 
 import { Search, Barcode } from 'lucide-react';

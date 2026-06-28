@@ -1,4 +1,3 @@
-// components/pos/CategoryFilter.tsx
 import { cn } from '@/lib/utils';
 
 const CATEGORIES = [

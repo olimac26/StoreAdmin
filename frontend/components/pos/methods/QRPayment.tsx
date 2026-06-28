@@ -1,4 +1,3 @@
-// components/pos/methods/QRPayment.tsx
 interface QRPaymentProps {
   total: number;
 }

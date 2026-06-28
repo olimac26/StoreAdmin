@@ -1,4 +1,3 @@
-// types/pos.ts
 export type PayMethod = 'efectivo' | 'transferencia' | 'credito';
 
 export interface Product {

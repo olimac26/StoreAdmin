@@ -1,4 +1,3 @@
-// components/pos/CartItem.tsx
 import { CartItem as CartItemType } from '@/types/pos';
 
 interface CartItemProps {

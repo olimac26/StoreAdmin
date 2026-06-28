@@ -1,4 +1,3 @@
-// components/pos/methods/CreditPayment.tsx
 'use client';
 
 import { useState } from 'react';

@@ -1,4 +1,3 @@
-// types/sales.ts
 export type OrderStatus = 'completed' | 'pending' | 'processing';
 
 export interface Order {
@@ -16,7 +15,6 @@ export interface SaleMetric {
   trend: 'up' | 'down';
 }
 
-// types/inventory.ts
 export type StockLevel = 'ok' | 'low' | 'critical' | 'out';
 
 export interface Product {

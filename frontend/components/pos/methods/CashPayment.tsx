@@ -1,4 +1,3 @@
-// components/pos/methods/CashPayment.tsx
 'use client';
 
 import { useState } from 'react';

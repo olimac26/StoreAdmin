@@ -1,4 +1,3 @@
-// components/pos/Cart.tsx
 'use client';
 
 import { ShoppingCart } from 'lucide-react';
@@ -31,7 +30,7 @@ export function Cart({
   total,
 }: CartProps) {
   return (
-    <div className="w-75 shrink-0 flex flex-col bg-card border-l">
+    <div className="w-100 shrink-0 flex flex-col bg-card border-l">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <span className="text-sm font-medium flex items-center gap-1.5">

@@ -1,4 +1,3 @@
-// components/pos/ProductCard.tsx
 import { cn } from '@/lib/utils';
 import { Product } from '@/types/pos';
 

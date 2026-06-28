@@ -1,4 +1,3 @@
-// components/pos/PaymentPanel.tsx
 'use client';
 
 import { Lock, Check } from 'lucide-react';

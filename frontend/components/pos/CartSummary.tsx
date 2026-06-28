@@ -1,4 +1,3 @@
-// components/pos/CartSummary.tsx
 interface CartSummaryProps {
   subtotal: number;
   discount: number | null | undefined;
