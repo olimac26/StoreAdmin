@@ -1,7 +1,7 @@
 'use client';
 import { Cart } from '@/components/pos/Cart';
 import { ProductGrid } from '@/components/pos/ProductGrid';
-import { usePOS } from './hooks/use-pos';
+import { usePOS } from '../hooks/use-pos';
 
 export default function Home() {
   const pos = usePOS();

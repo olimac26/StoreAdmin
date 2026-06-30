@@ -15,7 +15,6 @@ const INITIAL: Product[] = [
     stock: 3,
     minStock: 15,
   },
-  // ... resto de productos
 ];
 
 export function useProducts() {

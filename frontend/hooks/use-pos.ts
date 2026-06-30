@@ -11,7 +11,6 @@ export function usePOS() {
   const [payMethod, setPayMethod] = useState<PayMethod>('efectivo');
 
   const products = useMemo(() => {
-    // Aquí harías fetch a tu API
     return PRODUCTS.filter(
       (p) => activeCategory === 'todos' || p.category === activeCategory,
     ).filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -43,7 +42,6 @@ export function usePOS() {
   }
 
   function checkout() {
-    // Llamada a tu API para registrar la venta
     console.log('Registrando venta:', cartItems, payMethod);
     clearCart();
   }

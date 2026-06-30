@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ProductsTable } from '@/components/products/ProductsTable';
 import { ProductDrawer } from '@/components/products/ProductDrawer';
 import { DeleteDialog } from '@/components/products/DeleteDialog';
-import { useProducts } from '@/app/hooks/use-products';
+import { useProducts } from '@/hooks/use-products';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Product } from '@/types/pos';
