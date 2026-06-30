@@ -35,9 +35,7 @@ const schema = z.object({
   minStock: z.number().min(0).default(5),
 });
 
-// Tipo de ENTRADA: minStock puede venir undefined (antes del default)
 type FormInput = z.input<typeof schema>;
-// Tipo de SALIDA: minStock siempre es number (después del default)
 type FormOutput = z.output<typeof schema>;
 
 const CATEGORIES = ['Calzado', 'Ropa', 'Accesorios', 'Tecnología', 'Hogar'];

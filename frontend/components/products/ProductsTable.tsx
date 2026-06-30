@@ -71,7 +71,6 @@ const formatCurrency = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-// Componente helper extraído correctamente fuera del render principal
 function SortIcon({
   col,
   sortKey,
@@ -103,7 +102,6 @@ export function ProductsTable({
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
-  // Filtrado + ordenado
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return products
@@ -129,7 +127,6 @@ export function ProductsTable({
       });
   }, [products, search, category, stockFilter, sortKey, sortDir]);
 
-  // Selección
   const allSelected =
     filtered.length > 0 && filtered.every((p) => selected.has(p.id));
   const someSelected = filtered.some((p) => selected.has(p.id));
@@ -172,7 +169,6 @@ export function ProductsTable({
     clearSelection();
   }
 
-  // Ordenamiento
   function handleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
