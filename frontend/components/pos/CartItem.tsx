@@ -8,8 +8,6 @@ interface CartItemProps {
 export function CartItem({ item, onChangeQty }: CartItemProps) {
   return (
     <div className="flex items-center gap-2 py-2.5">
-      <span className="text-lg shrink-0">{item.emoji}</span>
-
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium truncate">{item.name}</p>
         <p className="text-[11px] text-muted-foreground">

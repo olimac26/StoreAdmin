@@ -20,7 +20,6 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         outOfStock && 'opacity-40 cursor-not-allowed',
       )}
     >
-      <div className="text-2xl text-center py-2">{product.emoji}</div>
       <p className="text-xs font-medium leading-snug line-clamp-2">
         {product.name}
       </p>

@@ -1,0 +1,42 @@
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { ProductForm } from './ProductForm';
+import { Product } from '@/types/pos';
+
+interface ProductDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  product: Product | null;
+  onSave: (data: Omit<Product, 'id'>) => void;
+}
+
+export function ProductDrawer({
+  open,
+  onClose,
+  product,
+  onSave,
+}: ProductDrawerProps) {
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent className="w-95 sm:w-105 flex flex-col">
+        <SheetHeader>
+          <SheetTitle>
+            {product ? 'Editar producto' : 'Nuevo producto'}
+          </SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto py-4">
+          <ProductForm
+            defaultValues={product ?? undefined}
+            onSave={onSave}
+            onCancel={onClose}
+            submitLabel={product ? 'Guardar cambios' : 'Crear producto'}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
