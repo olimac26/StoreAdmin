@@ -6,7 +6,7 @@ export interface Product {
   sku: string;
   barcode?: string;
   category: string;
-  desc?: string;
+  description?: string;
   price: number;
   cost?: number;
   stock: number;

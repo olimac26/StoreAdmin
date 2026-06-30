@@ -28,7 +28,7 @@ const schema = z.object({
   sku: z.string().min(1, 'El SKU es requerido'),
   barcode: z.string().optional(),
   category: z.string().min(1, 'Selecciona una categoría'),
-  desc: z.string().optional(),
+  description: z.string().optional(),
   price: z.number().positive('Precio inválido'),
   cost: z.number().min(0).optional(),
   stock: z.number().min(0, 'Stock inválido'),
@@ -60,7 +60,7 @@ export function ProductForm({
       sku: defaultValues?.sku ?? '',
       barcode: defaultValues?.barcode ?? '',
       category: defaultValues?.category ?? '',
-      desc: defaultValues?.desc ?? '',
+      description: defaultValues?.description ?? '',
       price: defaultValues?.price ?? 0,
       cost: defaultValues?.cost ?? 0,
       stock: defaultValues?.stock ?? 0,
@@ -166,7 +166,7 @@ export function ProductForm({
         />
 
         <Controller
-          name="desc"
+          name="description"
           control={form.control}
           render={({ field }) => (
             <Field>
