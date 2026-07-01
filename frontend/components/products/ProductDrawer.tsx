@@ -5,12 +5,13 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ProductForm } from './ProductForm';
-import { Product } from '@/types/product';
+import { Category, Product } from '@/types/product';
 
 interface ProductDrawerProps {
   open: boolean;
   onClose: () => void;
   product: Product | null;
+  categories: Category[];
   onSave: (data: Omit<Product, 'id'>) => void;
 }
 
@@ -18,6 +19,7 @@ export function ProductDrawer({
   open,
   onClose,
   product,
+  categories,
   onSave,
 }: ProductDrawerProps) {
   return (
@@ -30,6 +32,7 @@ export function ProductDrawer({
         </SheetHeader>
         <div className="flex-1 overflow-y-auto p-4">
           <ProductForm
+            categories={categories}
             defaultValues={product ?? undefined}
             onSave={onSave}
             onCancel={onClose}

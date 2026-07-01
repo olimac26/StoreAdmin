@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Product } from '@/types/product';
+import { Category, Product } from '@/types/product';
 
 const schema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -37,10 +37,9 @@ const schema = z.object({
 type FormInput = z.input<typeof schema>;
 type FormOutput = z.output<typeof schema>;
 
-const CATEGORIES = ['Calzado', 'Ropa', 'Accesorios', 'Tecnología', 'Hogar'];
-
 interface ProductFormProps {
   defaultValues?: Partial<Product>;
+  categories: Category[];
   onSave: (data: Omit<Product, 'id'>) => void;
   onCancel: () => void;
   submitLabel: string;
@@ -51,6 +50,7 @@ export function ProductForm({
   onSave,
   onCancel,
   submitLabel,
+  categories,
 }: ProductFormProps) {
   const form = useForm<FormInput, undefined, FormOutput>({
     resolver: zodResolver(schema),
@@ -133,9 +133,9 @@ export function ProductForm({
                   <SelectValue placeholder="Seleccionar..." />
                 </SelectTrigger>
                 <SelectContent position="item-aligned">
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.name}>
+                      {c.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

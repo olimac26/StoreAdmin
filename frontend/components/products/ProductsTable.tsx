@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Product } from '@/types/product';
+import { Category, Product } from '@/types/product';
 
 type SortKey = keyof Pick<Product, 'name' | 'category' | 'price' | 'stock'>;
 type SortDir = 'asc' | 'desc';
@@ -30,6 +30,7 @@ type StockFilter = 'all' | 'ok' | 'low' | 'out';
 
 interface ProductsTableProps {
   products: Product[];
+  categories: Category[];
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
   onDeleteMany: (products: Product[]) => void;
@@ -59,8 +60,6 @@ const stockBadgeVariant = {
   },
 };
 
-const CATEGORIES = ['Calzado', 'Ropa', 'Accesorios', 'Tecnología', 'Hogar'];
-
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('es-CO', {
     style: 'currency',
@@ -88,6 +87,7 @@ function SortIcon({
 
 export function ProductsTable({
   products,
+  categories,
   onEdit,
   onDelete,
   onDeleteMany,
@@ -196,9 +196,9 @@ export function ProductsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las categorías</SelectItem>
-            {CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.name}>
+                {c.name}
               </SelectItem>
             ))}
           </SelectContent>
