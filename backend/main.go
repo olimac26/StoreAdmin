@@ -1,7 +1,68 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"storebackend/handlers"
+)
 
 func main() {
-    fmt.Println("Hello, World!")
+	// Define commands
+	migrateCmd := flag.NewFlagSet("migrate", flag.ExitOnError)
+	serverCmd := flag.NewFlagSet("server", flag.ExitOnError)
+
+	if len(os.Args) < 2 {
+		fmt.Println("Usage:")
+		fmt.Println("  go run . migrate   - Run database migrations")
+		fmt.Println("  go run . server    - Start the server")
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "migrate":
+		migrateCmd.Parse(os.Args[2:])
+		if err := RunMigrations(); err != nil {
+			log.Fatalf("Migration failed: %v", err)
+		}
+
+	case "server":
+		serverCmd.Parse(os.Args[2:])
+		if err := InitDB(); err != nil {
+			log.Fatalf("Failed to initialize database: %v", err)
+		}
+		defer CloseDB()
+
+		// Initialize handlers with database connection
+		handlers.InitDB(DB)
+
+		// Register routes
+		mux := RegisterRoutes()
+
+		// Start server
+		port := ":8080"
+		fmt.Printf("Server started on http://localhost:8080\n")
+		fmt.Println("Available endpoints:")
+		fmt.Println("  GET    /api/health")
+		fmt.Println("  GET    /api/categories")
+		fmt.Println("  POST   /api/categories")
+		fmt.Println("  GET    /api/categories/{id}")
+		fmt.Println("  PUT    /api/categories/{id}")
+		fmt.Println("  DELETE /api/categories/{id}")
+		fmt.Println("  GET    /api/products")
+		fmt.Println("  POST   /api/products")
+		fmt.Println("  GET    /api/products/{id}")
+		fmt.Println("  PUT    /api/products/{id}")
+		fmt.Println("  DELETE /api/products/{id}")
+
+		if err := http.ListenAndServe(port, mux); err != nil {
+			log.Fatalf("Server error: %v", err)
+		}
+
+	default:
+		fmt.Printf("Unknown command: %s\n", os.Args[1])
+		os.Exit(1)
+	}
 }
