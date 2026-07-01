@@ -183,7 +183,7 @@ export function ProductsTable({
             🔍
           </span>
           <Input
-            placeholder="Buscar por nombre, SKU o código..."
+            placeholder="Buscar por nombre o código de barras"
             className="pl-7 h-8 text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}

@@ -31,7 +31,7 @@ export function ProductGrid({
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <Input
-            placeholder="Buscar producto o SKU..."
+            placeholder="Buscar producto"
             className="pl-8 h-8 bg-background text-sm"
             value={searchQuery}
             onChange={(e) => onSearch(e.target.value)}

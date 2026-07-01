@@ -25,7 +25,6 @@ import { Product } from '@/types/product';
 
 const schema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
-  sku: z.string().min(1, 'El SKU es requerido'),
   barcode: z.string().optional(),
   category: z.string().min(1, 'Selecciona una categoría'),
   description: z.string().optional(),
@@ -96,24 +95,6 @@ export function ProductForm({
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <Controller
-            name="sku"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>SKU *</FieldLabel>
-                <Input
-                  {...field}
-                  id={field.name}
-                  aria-invalid={fieldState.invalid}
-                  placeholder="SKU-001"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
           <Controller
             name="barcode"
             control={form.control}
