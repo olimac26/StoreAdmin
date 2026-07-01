@@ -94,7 +94,7 @@ export function ProductForm({
           )}
         />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="w-full">
           <Controller
             name="barcode"
             control={form.control}
