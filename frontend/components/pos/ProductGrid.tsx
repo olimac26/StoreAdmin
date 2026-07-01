@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CategoryFilter } from './CategoryFilter';
 import { ProductCard } from './ProductCard';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 interface ProductGridProps {
   products: Product[];

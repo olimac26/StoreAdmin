@@ -22,12 +22,9 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
-type SortKey = keyof Pick<
-  Product,
-  'name' | 'sku' | 'category' | 'price' | 'stock'
->;
+type SortKey = keyof Pick<Product, 'name' | 'category' | 'price' | 'stock'>;
 type SortDir = 'asc' | 'desc';
 type StockFilter = 'all' | 'ok' | 'low' | 'out';
 
@@ -109,7 +106,6 @@ export function ProductsTable({
         const matchQ =
           !q ||
           p.name.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
           (p.barcode ?? '').includes(q);
         const matchCat = category === 'all' || p.category === category;
         const matchSt =
@@ -282,15 +278,6 @@ export function ProductsTable({
 
               <TableHead
                 className="cursor-pointer select-none"
-                onClick={() => handleSort('sku')}
-              >
-                <div className="flex items-center">
-                  SKU <SortIcon col="sku" sortKey={sortKey} sortDir={sortDir} />
-                </div>
-              </TableHead>
-
-              <TableHead
-                className="cursor-pointer select-none"
                 onClick={() => handleSort('category')}
               >
                 <div className="flex items-center">
@@ -367,10 +354,6 @@ export function ProductsTable({
                           {p.barcode}
                         </div>
                       )}
-                    </TableCell>
-
-                    <TableCell className="text-xs text-muted-foreground font-mono">
-                      {p.sku}
                     </TableCell>
 
                     <TableCell>

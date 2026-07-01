@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 interface ProductCardProps {
   product: Product;

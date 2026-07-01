@@ -14,14 +14,3 @@ export interface SaleMetric {
   change: string;
   trend: 'up' | 'down';
 }
-
-export type StockLevel = 'ok' | 'low' | 'critical' | 'out';
-
-export interface Product {
-  sku: string;
-  name: string;
-  category: string;
-  stock: number;
-  minStock: number;
-  stockLevel: StockLevel;
-}

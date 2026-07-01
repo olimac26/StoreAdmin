@@ -1,4 +1,4 @@
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 export const CATEGORIES = [
   { id: 'todos', name: 'Todos los Productos', emoji: '🛍️' },
@@ -12,7 +12,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 1,
     name: 'Café Americano',
-    sku: 'SKU-001',
     price: 2500,
     category: 'bebidas',
     stock: 15,
@@ -21,7 +20,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 2,
     name: 'Refresco de Cola',
-    sku: 'SKU-002',
     price: 1800,
     category: 'bebidas',
     stock: 20,
@@ -30,7 +28,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 3,
     name: 'Agua Mineral',
-    sku: 'SKU-003',
     price: 1200,
     category: 'bebidas',
     stock: 5,
@@ -39,7 +36,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 4,
     name: 'Hamburguesa con Queso',
-    sku: 'SKU-004',
     price: 5500,
     category: 'snacks',
     stock: 8,
@@ -48,7 +44,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 5,
     name: 'Papas Fritas',
-    sku: 'SKU-005',
     price: 2000,
     category: 'snacks',
     stock: 12,
@@ -57,7 +52,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 6,
     name: 'Rebanada de Pastel',
-    sku: 'SKU-006',
     price: 3000,
     category: 'snacks',
     stock: 4,
@@ -66,7 +60,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 7,
     name: 'Mouse Inalámbrico',
-    sku: 'SKU-007',
     price: 15000,
     category: 'tecnologia',
     stock: 6,
@@ -75,7 +68,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 8,
     name: 'Teclado Mecánico',
-    sku: 'SKU-008',
     price: 45000,
     category: 'tecnologia',
     stock: 3,
@@ -84,7 +76,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 9,
     name: 'Audífonos Bluetooth',
-    sku: 'SKU-009',
     price: 28000,
     category: 'tecnologia',
     stock: 0,
@@ -93,7 +84,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 10,
     name: 'Cuaderno Universitario',
-    sku: 'SKU-010',
     price: 3500,
     category: 'papeleria',
     stock: 25,
@@ -102,7 +92,6 @@ export const PRODUCTS: Product[] = [
   {
     id: 11,
     name: 'Set de Bolígrafos (4 colores)',
-    sku: 'SKU-011',
     price: 1500,
     category: 'papeleria',
     stock: 50,

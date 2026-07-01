@@ -1,17 +1,7 @@
+import { Product } from './product';
+
 export type PayMethod = 'efectivo' | 'transferencia' | 'credito';
 
-export interface Product {
-  id: number;
-  name: string;
-  sku: string;
-  barcode?: string;
-  category: string;
-  description?: string;
-  price: number;
-  cost?: number;
-  stock: number;
-  minStock: number;
-}
 export interface CartItem extends Product {
   qty: number;
 }

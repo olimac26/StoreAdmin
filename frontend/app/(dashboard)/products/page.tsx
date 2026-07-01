@@ -7,7 +7,7 @@ import { DeleteDialog } from '@/components/products/DeleteDialog';
 import { useProducts } from '@/hooks/use-products';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 export default function ProductsPage() {
   const { products, create, update, remove } = useProducts();

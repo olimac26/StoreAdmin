@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Product, CartItem, PayMethod } from '@/types/pos';
+import { CartItem, PayMethod } from '@/types/pos';
+import { Product } from '@/types/product';
 import { PRODUCTS } from '@/app/mocks/products';
 
 export function usePOS() {

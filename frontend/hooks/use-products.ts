@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 const INITIAL: Product[] = [
   {
     id: 1,
     name: 'Zapatillas Air Pro',
-    sku: 'SKU-001',
     barcode: '7891234000001',
     category: 'Calzado',
     price: 145000,

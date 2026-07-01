@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 interface DeleteDialogProps {
   target: Product | Product[] | null;

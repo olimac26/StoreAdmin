@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 const schema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -57,7 +57,6 @@ export function ProductForm({
     resolver: zodResolver(schema),
     defaultValues: {
       name: defaultValues?.name ?? '',
-      sku: defaultValues?.sku ?? '',
       barcode: defaultValues?.barcode ?? '',
       category: defaultValues?.category ?? '',
       description: defaultValues?.description ?? '',

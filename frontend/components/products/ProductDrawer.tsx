@@ -5,7 +5,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ProductForm } from './ProductForm';
-import { Product } from '@/types/pos';
+import { Product } from '@/types/product';
 
 interface ProductDrawerProps {
   open: boolean;
