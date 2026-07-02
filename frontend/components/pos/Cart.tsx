@@ -14,7 +14,6 @@ interface CartProps {
   payMethod: PayMethod;
   onPayMethod: (m: PayMethod) => void;
   subtotal: number;
-  discount: number | null | undefined;
   total: number;
 }
 
@@ -26,7 +25,6 @@ export function Cart({
   payMethod,
   onPayMethod,
   subtotal,
-  discount,
   total,
 }: CartProps) {
   return (
@@ -70,7 +68,7 @@ export function Cart({
 
       {/* Footer */}
       <div className="border-t px-4 pt-3 pb-4 space-y-3">
-        <CartSummary subtotal={subtotal} discount={discount} total={total} />
+        <CartSummary subtotal={subtotal} total={total} />
         <PaymentPanel
           payMethod={payMethod}
           onPayMethod={onPayMethod}

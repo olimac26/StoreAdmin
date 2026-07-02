@@ -24,7 +24,6 @@ export default function Home() {
         payMethod={pos.payMethod}
         onPayMethod={pos.setPayMethod}
         subtotal={pos.subtotal}
-        discount={pos.discount}
         total={pos.total}
       />
     </div>

@@ -56,8 +56,7 @@ export function usePOS() {
   }
 
   const subtotal = cartItems.reduce((a, i) => a + i.price * i.qty, 0);
-  const discount = cartItems.length >= 3 ? subtotal * 0.05 : 0;
-  const total = subtotal - discount;
+  const total = subtotal;
 
   // Get unique categories from products
   const uniqueCategories = useMemo(() => {
@@ -80,7 +79,6 @@ export function usePOS() {
     clearCart,
     checkout,
     subtotal,
-    discount,
     total,
     loading: productsLoading || categoriesLoading,
   };
