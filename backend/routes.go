@@ -6,42 +6,30 @@ import (
 )
 
 // RegisterRoutes registers all API routes
-func RegisterRoutes() *http.ServeMux {
+func RegisterRoutes() *http.Handler {
 	mux := http.NewServeMux()
 
-	// CORS middleware wrapper
-	corsMiddleware := func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-			if r.Method == http.MethodOptions {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
-	}
-
 	// Category routes
-	mux.HandleFunc("GET /api/categories", corsMiddleware(http.HandlerFunc(handlers.GetCategories)).ServeHTTP)
-	mux.HandleFunc("GET /api/categories/{id}", corsMiddleware(http.HandlerFunc(handlers.GetCategory)).ServeHTTP)
-	mux.HandleFunc("POST /api/categories", corsMiddleware(http.HandlerFunc(handlers.CreateCategory)).ServeHTTP)
-	mux.HandleFunc("PUT /api/categories/{id}", corsMiddleware(http.HandlerFunc(handlers.UpdateCategory)).ServeHTTP)
-	mux.HandleFunc("DELETE /api/categories/{id}", corsMiddleware(http.HandlerFunc(handlers.DeleteCategory)).ServeHTTP)
+	mux.HandleFunc("GET /api/categories", handlers.GetCategories)
+	mux.HandleFunc("GET /api/categories/{id}", handlers.GetCategory)
+	mux.HandleFunc("POST /api/categories", handlers.CreateCategory)
+	mux.HandleFunc("PUT /api/categories/{id}", handlers.UpdateCategory)
+	mux.HandleFunc("DELETE /api/categories/{id}", handlers.DeleteCategory)
 
 	// Product routes
-	mux.HandleFunc("GET /api/products", corsMiddleware(http.HandlerFunc(handlers.GetProducts)).ServeHTTP)
-	mux.HandleFunc("GET /api/products/{id}", corsMiddleware(http.HandlerFunc(handlers.GetProduct)).ServeHTTP)
-	mux.HandleFunc("POST /api/products", corsMiddleware(http.HandlerFunc(handlers.CreateProduct)).ServeHTTP)
-	mux.HandleFunc("PUT /api/products/{id}", corsMiddleware(http.HandlerFunc(handlers.UpdateProduct)).ServeHTTP)
-	mux.HandleFunc("DELETE /api/products/{id}", corsMiddleware(http.HandlerFunc(handlers.DeleteProduct)).ServeHTTP)
+	mux.HandleFunc("GET /api/products", handlers.GetProducts)
+	mux.HandleFunc("GET /api/products/{id}", handlers.GetProduct)
+	mux.HandleFunc("POST /api/products", handlers.CreateProduct)
+	mux.HandleFunc("PUT /api/products/{id}", handlers.UpdateProduct)
+	mux.HandleFunc("DELETE /api/products/{id}", handlers.DeleteProduct)
 
 	// Health check
-	mux.HandleFunc("GET /api/health", corsMiddleware(http.HandlerFunc(handlers.Health)).ServeHTTP)
+	mux.HandleFunc("GET /api/health", handlers.Health)
 
-	return mux
+	// Wrap with CORS middleware
+	var handler http.Handler = mux
+	handler = CORSMiddleware(handler)
+
+	return &handler
 }
 

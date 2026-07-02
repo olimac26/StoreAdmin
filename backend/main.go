@@ -38,7 +38,7 @@ func main() {
 		// Initialize handlers with database connection
 		handlers.InitDB(DB)
 
-		// Register routes
+		// Register routes (already wrapped with CORS)
 		mux := RegisterRoutes()
 
 		// Start server
@@ -57,7 +57,7 @@ func main() {
 		fmt.Println("  PUT    /api/products/{id}")
 		fmt.Println("  DELETE /api/products/{id}")
 
-		if err := http.ListenAndServe(port, mux); err != nil {
+		if err := http.ListenAndServe(port, *mux); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 

@@ -26,7 +26,7 @@ import { Category, Product } from '@/types/product';
 const schema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
   barcode: z.string().optional(),
-  category: z.string().min(1, 'Selecciona una categoría'),
+  category_id: z.number().min(1, 'Selecciona una categoría'),
   description: z.string().optional(),
   price: z.number().positive('Precio inválido'),
   cost: z.number().min(0).optional(),
@@ -57,7 +57,7 @@ export function ProductForm({
     defaultValues: {
       name: defaultValues?.name ?? '',
       barcode: defaultValues?.barcode ?? '',
-      category: defaultValues?.category ?? '',
+      category_id: defaultValues?.category_id ?? 0,
       description: defaultValues?.description ?? '',
       price: defaultValues?.price ?? 0,
       cost: defaultValues?.cost ?? 0,
@@ -116,15 +116,15 @@ export function ProductForm({
         </div>
 
         <Controller
-          name="category"
+          name="category_id"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Categoría *</FieldLabel>
               <Select
                 name={field.name}
-                value={field.value}
-                onValueChange={field.onChange}
+                value={field.value ? String(field.value) : ''}
+                onValueChange={(value) => field.onChange(parseInt(value, 10))}
               >
                 <SelectTrigger
                   id={field.name}
@@ -134,7 +134,7 @@ export function ProductForm({
                 </SelectTrigger>
                 <SelectContent position="item-aligned">
                   {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.name}>
+                    <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
                     </SelectItem>
                   ))}

@@ -1,32 +1,143 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Category } from '@/types/product';
+import { API, apiFetch } from '@/lib/api';
 
-const INITIAL: Category[] = [
-  { id: 1, name: 'Calzado', description: 'Zapatos, zapatillas y botas' },
-  { id: 2, name: 'Ropa', description: 'Camisas, pantalones y vestidos' },
-  { id: 3, name: 'Accesorios', description: 'Gorras, gafas y bolsos' },
-  { id: 4, name: 'Tecnología', description: 'Electrónicos y gadgets' },
-  { id: 5, name: 'Hogar', description: 'Artículos para el hogar' },
-];
+interface UseCategariesState {
+  categories: Category[];
+  loading: boolean;
+  error: string | null;
+}
 
 export function useCategories() {
-  const [categories, setCategories] = useState<Category[]>(INITIAL);
+  const [state, setState] = useState<UseCategariesState>({
+    categories: [],
+    loading: true,
+    error: null,
+  });
 
-  function create(name: string, description?: string) {
-    setCategories((prev) => [...prev, { id: Date.now(), name, description }]);
-  }
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setState((prev) => ({ ...prev, loading: true, error: null }));
+        const response = await apiFetch<{ success: boolean; data: Category[] }>(
+          API.ENDPOINTS.CATEGORIES,
+        );
+        setState((prev) => ({
+          ...prev,
+          categories: response.data || [],
+          loading: false,
+        }));
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Error fetching categories',
+          loading: false,
+        }));
+      }
+    };
 
-  function update(id: number, name: string, description?: string) {
-    setCategories((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, name, description } : c)),
-    );
-  }
+    fetchCategories();
+  }, []);
 
-  function remove(id: number) {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
-  }
+  const create = useCallback(async (name: string, description?: string) => {
+    try {
+      const response = await apiFetch<{
+        success: boolean;
+        data: { id: number };
+      }>(API.ENDPOINTS.CATEGORIES, {
+        method: 'POST',
+        body: JSON.stringify({ name, description }),
+      });
 
-  return { categories, create, update, remove };
+      if (response.success) {
+        // Refetch categories to get the new one with all data
+        const categoriesResponse = await apiFetch<{
+          success: boolean;
+          data: Category[];
+        }>(API.ENDPOINTS.CATEGORIES);
+        setState((prev) => ({
+          ...prev,
+          categories: categoriesResponse.data || [],
+        }));
+      }
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : 'Error creating category',
+      }));
+    }
+  }, []);
+
+  const update = useCallback(
+    async (id: number, name: string, description?: string) => {
+      try {
+        const response = await apiFetch<{ success: boolean }>(
+          API.ENDPOINTS.CATEGORY(id),
+          {
+            method: 'PUT',
+            body: JSON.stringify({ name, description }),
+          },
+        );
+
+        if (response.success) {
+          // Refetch to ensure data is consistent
+          const categoriesResponse = await apiFetch<{
+            success: boolean;
+            data: Category[];
+          }>(API.ENDPOINTS.CATEGORIES);
+          setState((prev) => ({
+            ...prev,
+            categories: categoriesResponse.data || [],
+          }));
+        }
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          error:
+            error instanceof Error ? error.message : 'Error updating category',
+        }));
+      }
+    },
+    [],
+  );
+
+  const remove = useCallback(async (id: number) => {
+    try {
+      const response = await apiFetch<{ success: boolean }>(
+        API.ENDPOINTS.CATEGORY(id),
+        {
+          method: 'DELETE',
+        },
+      );
+
+      if (response.success) {
+        setState((prev) => ({
+          ...prev,
+          categories: prev.categories.filter((c) => c.id !== id),
+        }));
+      }
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : 'Error deleting category',
+      }));
+    }
+  }, []);
+
+  return {
+    categories: state.categories,
+    loading: state.loading,
+    error: state.error,
+    create,
+    update,
+    remove,
+  };
 }

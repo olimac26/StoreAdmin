@@ -3,19 +3,27 @@
 import { useState, useMemo } from 'react';
 import { CartItem, PayMethod } from '@/types/pos';
 import { Product } from '@/types/product';
-import { PRODUCTS } from '@/app/mocks/products';
+import { useProducts } from './use-products';
+import { useCategories } from './use-categories';
 
 export function usePOS() {
+  const { products, loading: productsLoading } = useProducts();
+  const { categories, loading: categoriesLoading } = useCategories();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('todos');
   const [payMethod, setPayMethod] = useState<PayMethod>('efectivo');
 
-  const products = useMemo(() => {
-    return PRODUCTS.filter(
-      (p) => activeCategory === 'todos' || p.category === activeCategory,
-    ).filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [searchQuery, activeCategory]);
+  // Map backend category names to product category field
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter((p) => {
+        if (activeCategory === 'todos') return true;
+        return p.category === activeCategory;
+      })
+      .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [products, searchQuery, activeCategory]);
 
   function addToCart(product: Product) {
     setCartItems((prev) => {
@@ -51,8 +59,15 @@ export function usePOS() {
   const discount = cartItems.length >= 3 ? subtotal * 0.05 : 0;
   const total = subtotal - discount;
 
+  // Get unique categories from products
+  const uniqueCategories = useMemo(() => {
+    const cats = [...new Set(products.map((p) => p.category).filter(Boolean))];
+    return cats as string[];
+  }, [products]);
+
   return {
-    products,
+    products: filteredProducts,
+    categories: uniqueCategories,
     cartItems,
     searchQuery,
     setSearchQuery,
@@ -67,5 +82,6 @@ export function usePOS() {
     subtotal,
     discount,
     total,
+    loading: productsLoading || categoriesLoading,
   };
 }
