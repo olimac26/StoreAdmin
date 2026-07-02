@@ -24,14 +24,14 @@ import { Separator } from '@/components/ui/separator';
 import { Category, Product } from '@/types/product';
 
 const schema = z.object({
-  name: z.string().min(1, 'El nombre es requerido'),
-  barcode: z.string().optional(),
+  name: z.string().trim().min(1, 'El nombre es requerido'),
+  barcode: z.string().trim().optional(),
   category_id: z.number().min(1, 'Selecciona una categoría'),
-  description: z.string().optional(),
-  price: z.number().positive('Precio inválido'),
-  cost: z.number().min(0).optional(),
-  stock: z.number().min(0, 'Stock inválido'),
-  minStock: z.number().min(0).default(5),
+  description: z.string().trim().optional(),
+  price: z.coerce.number().positive('Precio inválido'),
+  cost: z.coerce.number().min(0).optional(),
+  stock: z.coerce.number().min(0, 'Stock inválido'),
+  minStock: z.coerce.number().min(0).default(5),
 });
 
 type FormInput = z.input<typeof schema>;
@@ -59,10 +59,15 @@ export function ProductForm({
       barcode: defaultValues?.barcode ?? '',
       category_id: defaultValues?.category_id ?? 0,
       description: defaultValues?.description ?? '',
-      price: defaultValues?.price ?? 0,
-      cost: defaultValues?.cost ?? 0,
-      stock: defaultValues?.stock ?? 0,
-      minStock: defaultValues?.minStock ?? 5,
+      price:
+        defaultValues?.price !== undefined ? String(defaultValues.price) : '',
+      cost: defaultValues?.cost !== undefined ? String(defaultValues.cost) : '',
+      stock:
+        defaultValues?.stock !== undefined ? String(defaultValues.stock) : '',
+      minStock:
+        defaultValues?.minStock !== undefined
+          ? String(defaultValues.minStock)
+          : '',
     },
   });
 
@@ -175,12 +180,20 @@ export function ProductForm({
                 <FieldLabel htmlFor={field.name}>Precio (COP) *</FieldLabel>
                 <Input
                   {...field}
+                  value={
+                    field.value !== undefined && field.value !== null
+                      ? String(field.value)
+                      : ''
+                  }
                   id={field.name}
-                  type="number"
-                  min={0}
-                  step={100}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   aria-invalid={fieldState.invalid}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  onChange={(e) => {
+                    const cleanValue = e.target.value.replace(/\D/g, '');
+                    field.onChange(cleanValue);
+                  }}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -196,12 +209,19 @@ export function ProductForm({
                 <FieldLabel htmlFor={field.name}>Precio costo</FieldLabel>
                 <Input
                   {...field}
+                  value={
+                    field.value !== undefined && field.value !== null
+                      ? String(field.value)
+                      : ''
+                  }
                   id={field.name}
-                  type="number"
-                  min={0}
-                  step={100}
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Opcional"
-                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  onChange={(e) => {
+                    const cleanValue = e.target.value.replace(/\D/g, '');
+                    field.onChange(cleanValue);
+                  }}
                 />
               </Field>
             )}
@@ -217,11 +237,20 @@ export function ProductForm({
                 <FieldLabel htmlFor={field.name}>Stock actual *</FieldLabel>
                 <Input
                   {...field}
+                  value={
+                    field.value !== undefined && field.value !== null
+                      ? String(field.value)
+                      : ''
+                  }
                   id={field.name}
-                  type="number"
-                  min={0}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
                   aria-invalid={fieldState.invalid}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  onChange={(e) => {
+                    const cleanValue = e.target.value.replace(/\D/g, '');
+                    field.onChange(cleanValue);
+                  }}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -237,11 +266,19 @@ export function ProductForm({
                 <FieldLabel htmlFor={field.name}>Stock mínimo</FieldLabel>
                 <Input
                   {...field}
+                  value={
+                    field.value !== undefined && field.value !== null
+                      ? String(field.value)
+                      : ''
+                  }
                   id={field.name}
-                  type="number"
-                  min={0}
+                  type="text"
+                  inputMode="numeric"
                   placeholder="5"
-                  onChange={(e) => field.onChange(e.target.valueAsNumber || 0)}
+                  onChange={(e) => {
+                    const cleanValue = e.target.value.replace(/\D/g, '');
+                    field.onChange(cleanValue);
+                  }}
                 />
                 <FieldDescription>Alerta de reposición</FieldDescription>
               </Field>

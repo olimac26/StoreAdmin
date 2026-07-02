@@ -35,7 +35,7 @@ type Product struct {
 	Price     float64   `json:"price"`
 	Cost      *float64  `json:"cost,omitempty"`
 	Stock     int       `json:"stock"`
-	MinStock  int       `json:"min_stock"`
+	MinStock  int       `json:"minStock"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -61,7 +61,7 @@ type CreateProductRequest struct {
 	Price       float64  `json:"price" binding:"required"`
 	Cost        *float64 `json:"cost"`
 	Stock       int      `json:"stock" binding:"required"`
-	MinStock    int      `json:"min_stock" binding:"required"`
+	MinStock    int      `json:"minStock" binding:"required"`
 }
 
 // UpdateProductRequest is the payload for updating a product
@@ -73,7 +73,7 @@ type UpdateProductRequest struct {
 	Price       *float64 `json:"price"`
 	Cost        *float64 `json:"cost"`
 	Stock       *int     `json:"stock"`
-	MinStock    *int     `json:"min_stock"`
+	MinStock    *int     `json:"minStock"`
 }
 
 // APIResponse is the standard response format

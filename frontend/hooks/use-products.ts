@@ -44,6 +44,7 @@ export function useProducts() {
   }, []);
 
   const create = useCallback(async (data: Omit<Product, 'id'>) => {
+    console.log(data.minStock);
     try {
       const response = await apiFetch<{
         success: boolean;

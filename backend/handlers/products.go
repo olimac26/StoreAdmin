@@ -85,6 +85,10 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Barcode != nil && *req.Barcode == "" {
+    req.Barcode = nil
+  }
+
 	var id int
 	err := db.QueryRow(
 		`INSERT INTO products (name, barcode, category_id, description, price, cost, stock, min_stock) 
@@ -123,6 +127,9 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Barcode != nil && *req.Barcode == "" {
+    req.Barcode = nil 
+	}
 	// Build dynamic update query
 	query := "UPDATE products SET updated_at = CURRENT_TIMESTAMP"
 	args := []interface{}{}
