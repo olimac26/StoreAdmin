@@ -17,17 +17,23 @@ const METHODS: { id: PayMethod; label: string; icon: string }[] = [
 interface PaymentPanelProps {
   payMethod: PayMethod;
   onPayMethod: (m: PayMethod) => void;
+  customerName: string;
+  onCustomerName: (v: string) => void;
   total: number;
   disabled: boolean;
   onCheckout: () => void;
+  customerError?: string;
 }
 
 export function PaymentPanel({
   payMethod,
   onPayMethod,
+  customerName,
+  onCustomerName,
   total,
   disabled,
   onCheckout,
+  customerError,
 }: PaymentPanelProps) {
   return (
     <div className="space-y-2.5">
@@ -55,7 +61,13 @@ export function PaymentPanel({
         <div>
           {payMethod === 'efectivo' && <CashPayment total={total} />}
           {payMethod === 'transferencia' && <QRPayment total={total} />}
-          {payMethod === 'credito' && <CreditPayment />}
+          {payMethod === 'credito' && (
+            <CreditPayment
+              error={customerError}
+              value={customerName}
+              onChange={onCustomerName}
+            />
+          )}
         </div>
       )}
 

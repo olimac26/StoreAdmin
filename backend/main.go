@@ -44,18 +44,6 @@ func main() {
 		// Start server
 		port := ":8080"
 		fmt.Printf("Server started on http://localhost:8080\n")
-		fmt.Println("Available endpoints:")
-		fmt.Println("  GET    /api/health")
-		fmt.Println("  GET    /api/categories")
-		fmt.Println("  POST   /api/categories")
-		fmt.Println("  GET    /api/categories/{id}")
-		fmt.Println("  PUT    /api/categories/{id}")
-		fmt.Println("  DELETE /api/categories/{id}")
-		fmt.Println("  GET    /api/products")
-		fmt.Println("  POST   /api/products")
-		fmt.Println("  GET    /api/products/{id}")
-		fmt.Println("  PUT    /api/products/{id}")
-		fmt.Println("  DELETE /api/products/{id}")
 
 		if err := http.ListenAndServe(port, *mux); err != nil {
 			log.Fatalf("Server error: %v", err)

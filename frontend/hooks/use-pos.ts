@@ -5,15 +5,29 @@ import { CartItem, PayMethod } from '@/types/pos';
 import { Product } from '@/types/product';
 import { useProducts } from './use-products';
 import { useCategories } from './use-categories';
+import { useSales } from './use-sales';
+
+function normalizeCustomerName(value: string) {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
 export function usePOS() {
   const { products, loading: productsLoading } = useProducts();
-  const { categories, loading: categoriesLoading } = useCategories();
+  const { loading: categoriesLoading } = useCategories();
+  const { createSale } = useSales();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('todos');
   const [payMethod, setPayMethod] = useState<PayMethod>('efectivo');
+  const [customerName, setCustomerName] = useState('');
+  const [customerError, setCustomerError] = useState('');
 
   // Map backend category names to product category field
   const filteredProducts = useMemo(() => {
@@ -41,7 +55,14 @@ export function usePOS() {
   function changeQty(id: number, delta: number) {
     setCartItems((prev) =>
       prev
-        .map((i) => (i.id === id ? { ...i, qty: i.qty + delta } : i))
+        .map((i) => {
+          if (i.id === id) {
+            const nextQty = i.qty + delta;
+            if (delta > 0 && nextQty > i.stock) return i;
+            return { ...i, qty: nextQty };
+          }
+          return i;
+        })
         .filter((i) => i.qty > 0),
     );
   }
@@ -50,9 +71,49 @@ export function usePOS() {
     setCartItems([]);
   }
 
-  function checkout() {
-    console.log('Registrando venta:', cartItems, payMethod);
+  function handleCustomerNameChange(value: string) {
+    setCustomerName(value);
+    if (customerError && value.trim()) {
+      setCustomerError('');
+    }
+  }
+
+  function handlePayMethodChange(value: PayMethod) {
+    setPayMethod(value);
+    if (value !== 'credito') {
+      setCustomerError('');
+    }
+  }
+
+  async function checkout() {
+    if (cartItems.length === 0) return;
+
+    const normalizedCustomer = normalizeCustomerName(customerName);
+
+    if (payMethod === 'credito' && normalizedCustomer.trim() === '') {
+      setCustomerError(
+        'El nombre del cliente es obligatorio para ventas a crédito.',
+      );
+      return;
+    }
+
+    setCustomerError('');
+
+    const payload = {
+      customer:
+        payMethod === 'credito' ? normalizedCustomer : 'Cliente general',
+      paymentMethod: payMethod,
+      notes: 'Venta registrada desde POS',
+      items: cartItems.map((item) => ({
+        productId: item.id,
+        quantity: item.qty,
+        price: item.price,
+      })),
+    };
+
+    await createSale(payload);
     clearCart();
+    setCustomerName('');
   }
 
   const subtotal = cartItems.reduce((a, i) => a + i.price * i.qty, 0);
@@ -73,13 +134,16 @@ export function usePOS() {
     activeCategory,
     setActiveCategory,
     payMethod,
-    setPayMethod,
+    setPayMethod: handlePayMethodChange,
+    customerName,
+    setCustomerName: handleCustomerNameChange,
     addToCart,
     changeQty,
     clearCart,
     checkout,
     subtotal,
     total,
+    customerError,
     loading: productsLoading || categoriesLoading,
   };
 }

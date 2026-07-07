@@ -12,6 +12,10 @@ export const API = {
     PRODUCTS: '/api/products',
     PRODUCT: (id: number) => `/api/products/${id}`,
 
+    // Sales
+    SALES: '/api/sales',
+    ORDER: (id: string) => `/api/sales/${id}`,
+
     // Health
     HEALTH: '/api/health',
   },

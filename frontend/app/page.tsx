@@ -23,6 +23,9 @@ export default function Home() {
         onCheckout={pos.checkout}
         payMethod={pos.payMethod}
         onPayMethod={pos.setPayMethod}
+        customerName={pos.customerName}
+        onCustomerName={pos.setCustomerName}
+        customerError={pos.customerError}
         subtotal={pos.subtotal}
         total={pos.total}
       />

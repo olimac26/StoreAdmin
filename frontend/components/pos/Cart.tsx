@@ -13,6 +13,9 @@ interface CartProps {
   onCheckout: () => void;
   payMethod: PayMethod;
   onPayMethod: (m: PayMethod) => void;
+  customerName: string;
+  onCustomerName: (v: string) => void;
+  customerError?: string;
   subtotal: number;
   total: number;
 }
@@ -24,6 +27,9 @@ export function Cart({
   onCheckout,
   payMethod,
   onPayMethod,
+  customerName,
+  onCustomerName,
+  customerError,
   subtotal,
   total,
 }: CartProps) {
@@ -72,9 +78,12 @@ export function Cart({
         <PaymentPanel
           payMethod={payMethod}
           onPayMethod={onPayMethod}
+          customerName={customerName}
+          onCustomerName={onCustomerName}
           total={total}
           disabled={items.length === 0}
           onCheckout={onCheckout}
+          customerError={customerError}
         />
       </div>
     </div>

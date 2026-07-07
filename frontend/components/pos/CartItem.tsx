@@ -6,12 +6,17 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, onChangeQty }: CartItemProps) {
+  const isMaxStock = item.qty >= item.stock;
+
   return (
     <div className="flex items-center gap-2 py-2.5">
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium truncate">{item.name}</p>
         <p className="text-[11px] text-muted-foreground">
           {formatCurrency(item.price)} c/u
+          <span className="text-[10px] ml-1.5 text-orange-500 font-medium">
+            (Disponibles: {item.stock})
+          </span>
         </p>
       </div>
 
@@ -26,6 +31,7 @@ export function CartItem({ item, onChangeQty }: CartItemProps) {
         <span className="text-xs font-medium w-5 text-center">{item.qty}</span>
         <button
           onClick={() => onChangeQty(item.id, 1)}
+          disabled={isMaxStock}
           className="w-5 h-5 rounded border text-sm flex items-center justify-center
                      hover:bg-muted transition-colors"
         >

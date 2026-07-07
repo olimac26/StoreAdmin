@@ -23,6 +23,15 @@ func RegisterRoutes() *http.Handler {
 	mux.HandleFunc("PUT /api/products/{id}", handlers.UpdateProduct)
 	mux.HandleFunc("DELETE /api/products/{id}", handlers.DeleteProduct)
 
+	// Sales routes
+	mux.HandleFunc("GET /api/sales", handlers.GetSales)
+	mux.HandleFunc("GET /api/sales/{id}", handlers.GetSale)
+	mux.HandleFunc("POST /api/sales", handlers.CreateSale)
+	mux.HandleFunc("PUT /api/sales/{id}", handlers.UpdateSale)
+	mux.HandleFunc("POST /api/sales/{id}/cancel", handlers.CancelSale)
+	mux.HandleFunc("POST /api/sales/{id}/return", handlers.ReturnSale)
+	mux.HandleFunc("DELETE /api/sales/{id}", handlers.DeleteSale)
+
 	// Health check
 	mux.HandleFunc("GET /api/health", handlers.Health)
 
@@ -32,4 +41,3 @@ func RegisterRoutes() *http.Handler {
 
 	return &handler
 }
-
