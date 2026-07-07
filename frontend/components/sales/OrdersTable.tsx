@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useSales } from '@/hooks/use-sales';
-import { Sale } from '@/types/sales';
+import { Sale } from '@/types/sale';
 import { Plus, Minus } from 'lucide-react'; // Iconos limpios para los botones de cantidad
 
 const statusMap = {

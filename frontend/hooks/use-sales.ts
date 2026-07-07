@@ -7,7 +7,7 @@ import {
   CreateSalePayload,
   UpdateSalePayload,
   ReturnSalePayload,
-} from '@/types/sales';
+} from '@/types/sale';
 
 interface UseSalesState {
   sales: Sale[];
