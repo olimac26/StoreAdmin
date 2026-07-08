@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,7 +20,7 @@ import {
 } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Client } from '@/types/client';
+import { Client, ClientMutationPayload } from '@/types/client';
 
 const schema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -34,7 +35,7 @@ interface ClientFormDialogProps {
   open: boolean;
   onClose: () => void;
   defaultValues?: Partial<Client>;
-  onSave: (data: Omit<Client, 'id' | 'history'>) => void;
+  onSave: (data: ClientMutationPayload) => void;
 }
 
 export function ClientFormDialog({
@@ -55,16 +56,26 @@ export function ClientFormDialog({
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: defaultValues?.name ?? '',
+        phone: defaultValues?.phone ?? '',
+        email: defaultValues?.email ?? '',
+        doc: defaultValues?.doc ?? '',
+      });
+    } else {
+      form.reset({ name: '', phone: '', email: '', doc: '' });
+    }
+  }, [defaultValues, open, form]);
+
   function handleSave(data: FormValues) {
     onSave({
       name: data.name,
       phone: data.phone || undefined,
       email: data.email || undefined,
       doc: data.doc || undefined,
-      balance: defaultValues?.balance ?? 0,
-      total: defaultValues?.total ?? 0,
     });
-    form.reset();
   }
 
   return (

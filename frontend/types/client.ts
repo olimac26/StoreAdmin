@@ -23,6 +23,11 @@ export interface Client {
 
 export type DebtStatus = 'ok' | 'partial' | 'debt' | 'none';
 
+export type ClientMutationPayload = Omit<
+  Client,
+  'id' | 'balance' | 'total' | 'created_at' | 'updated_at' | 'history'
+>;
+
 export function getBalance(client: Client): number {
   return client.balance; // ya no se calcula en frontend
 }

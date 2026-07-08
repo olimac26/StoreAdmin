@@ -7,7 +7,7 @@ import { ClientFormDialog } from '@/components/clients/ClientFormDialog';
 import { useClients } from '@/hooks/use-clients';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Client } from '@/types/client';
+import { Client, ClientMutationPayload } from '@/types/client';
 
 export default function ClientsPage() {
   const { clients, create, update, remove, addPayment } = useClients();
@@ -24,7 +24,7 @@ export default function ClientsPage() {
     setFormOpen(true);
   }
 
-  function handleSave(data: Omit<Client, 'id' | 'history'>) {
+  function handleSave(data: ClientMutationPayload) {
     if (editing) {
       update(editing.id, data);
     } else {
