@@ -61,6 +61,8 @@ export function ClientFormDialog({
       phone: data.phone || undefined,
       email: data.email || undefined,
       doc: data.doc || undefined,
+      balance: defaultValues?.balance ?? 0,
+      total: defaultValues?.total ?? 0,
     });
     form.reset();
   }

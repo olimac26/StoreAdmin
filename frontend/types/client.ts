@@ -1,3 +1,4 @@
+// types/client.ts
 export type HistoryItemType = 'credit' | 'payment';
 
 export interface HistoryItem {
@@ -6,6 +7,7 @@ export interface HistoryItem {
   desc: string;
   amount: number;
   date: string;
+  orderId?: string;
 }
 
 export interface Client {
@@ -14,28 +16,24 @@ export interface Client {
   phone?: string;
   email?: string;
   doc?: string;
+  balance: number; // ← viene calculado del backend
+  total: number; // ← viene calculado del backend
   history: HistoryItem[];
-}
-
-export function getBalance(client: Client): number {
-  return client.history.reduce(
-    (acc, h) => (h.type === 'credit' ? acc + h.amount : acc - h.amount),
-    0,
-  );
-}
-
-export function getTotalPurchases(client: Client): number {
-  return client.history
-    .filter((h) => h.type === 'credit')
-    .reduce((a, h) => a + h.amount, 0);
 }
 
 export type DebtStatus = 'ok' | 'partial' | 'debt' | 'none';
 
+export function getBalance(client: Client): number {
+  return client.balance; // ya no se calcula en frontend
+}
+
+export function getTotalPurchases(client: Client): number {
+  return client.total;
+}
+
 export function getDebtStatus(client: Client): DebtStatus {
-  if (!client.history.length) return 'none';
-  const balance = getBalance(client);
-  if (balance <= 0) return 'ok';
-  const total = getTotalPurchases(client);
-  return balance < total ? 'partial' : 'debt';
+  if (!client.history.length && client.balance === 0) return 'none';
+  if (client.balance <= 0) return 'ok';
+  if (client.balance < client.total) return 'partial';
+  return 'debt';
 }
