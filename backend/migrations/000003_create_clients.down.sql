@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS credit_history;
+DROP TABLE IF EXISTS clients;

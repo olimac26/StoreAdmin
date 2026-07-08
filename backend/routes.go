@@ -32,6 +32,16 @@ func RegisterRoutes() *http.Handler {
 	mux.HandleFunc("POST /api/sales/{id}/return", handlers.ReturnSale)
 	mux.HandleFunc("DELETE /api/sales/{id}", handlers.DeleteSale)
 
+	// Client routes
+	// Clients
+	mux.HandleFunc("GET    /api/clients",                 handlers.GetClients)
+	mux.HandleFunc("POST   /api/clients",                 handlers.CreateClient)
+	mux.HandleFunc("GET    /api/clients/{id}",            handlers.GetClient)
+	mux.HandleFunc("PUT    /api/clients/{id}",            handlers.UpdateClient)
+	mux.HandleFunc("DELETE /api/clients/{id}",            handlers.DeleteClient)
+	mux.HandleFunc("GET    /api/clients/{id}/history",    handlers.GetClientHistory)
+	mux.HandleFunc("POST   /api/clients/{id}/history",    handlers.AddCreditEntry)
+
 	// Health check
 	mux.HandleFunc("GET /api/health", handlers.Health)
 
