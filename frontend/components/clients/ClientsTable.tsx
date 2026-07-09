@@ -75,7 +75,7 @@ interface ClientsTableProps {
   clients: Client[];
   onSelect: (client: Client) => void;
   onEdit: (client: Client) => void;
-  onDelete: (id: number) => void;
+  onDelete: (client: Client) => void;
 }
 
 export function ClientsTable({
@@ -267,7 +267,7 @@ export function ClientsTable({
                           className="h-7 w-7 hover:text-destructive hover:bg-destructive/10"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onDelete(c.id);
+                            onDelete(c);
                           }}
                           aria-label={`Eliminar ${c.name}`}
                         >

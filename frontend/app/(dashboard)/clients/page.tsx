@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ClientsTable } from '@/components/clients/ClientsTable';
 import { ClientDrawer } from '@/components/clients/ClientDrawer';
 import { ClientFormDialog } from '@/components/clients/ClientFormDialog';
+import { DeleteDialog } from '@/components/ui/DeleteDialog';
 import { useClients } from '@/hooks/use-clients';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -14,6 +15,8 @@ export default function ClientsPage() {
   const [drawerClient, setDrawerClient] = useState<Client | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
+
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
 
   function openCreate() {
     setEditing(null);
@@ -33,12 +36,20 @@ export default function ClientsPage() {
     setFormOpen(false);
   }
 
-  // Sincroniza el drawer con el cliente actualizado tras un abono
   function handlePayment(clientId: number, amount: number) {
     addPayment(clientId, amount);
     const updated = clients.find((c) => c.id === clientId);
     if (updated) setDrawerClient({ ...updated });
   }
+
+  function handleDelete() {
+    if (!deleteTarget) return;
+
+    remove(deleteTarget.id);
+    setDeleteTarget(null);
+  }
+
+  const clientName = deleteTarget ? `"${deleteTarget.name}"` : '';
 
   return (
     <div className="flex flex-col h-full gap-4">
@@ -58,7 +69,7 @@ export default function ClientsPage() {
         clients={clients}
         onSelect={setDrawerClient}
         onEdit={openEdit}
-        onDelete={remove}
+        onDelete={(c) => setDeleteTarget(c)}
       />
 
       <ClientDrawer
@@ -66,6 +77,14 @@ export default function ClientsPage() {
         onClose={() => setDrawerClient(null)}
         onPayment={handlePayment}
         onEdit={openEdit}
+      />
+
+      <DeleteDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title={`Eliminar cliente`}
+        description={`El cliente ${clientName} y todo su historial de cuentas o abonos asociados serán eliminados. Esta acción no se puede deshacer.`}
       />
 
       <ClientFormDialog

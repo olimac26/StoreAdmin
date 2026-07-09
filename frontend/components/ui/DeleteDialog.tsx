@@ -8,36 +8,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Product } from '@/types/product';
 
 interface DeleteDialogProps {
-  target: Product | Product[] | null;
+  isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
 }
 
 export function DeleteDialog({
-  target,
+  isOpen,
   onClose,
   onConfirm,
+  title = '¿Estás seguro?',
+  description = 'Esta acción no se puede deshacer.',
 }: DeleteDialogProps) {
-  const isMany = Array.isArray(target);
-  const name =
-    !isMany && target
-      ? `"${target.name}"`
-      : `${(target as Product[])?.length} productos`;
-
   return (
-    <AlertDialog open={!!target} onOpenChange={(v) => !v && onClose()}>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Eliminar {name}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {isMany
-              ? `Los ${name} seleccionados serán eliminados permanentemente.`
-              : `El producto ${name} y su información de stock serán eliminados.`}{' '}
-            Esta acción no se puede deshacer.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose}>Cancelar</AlertDialogCancel>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ProductsTable } from '@/components/products/ProductsTable';
 import { ProductDrawer } from '@/components/products/ProductDrawer';
-import { DeleteDialog } from '@/components/products/DeleteDialog';
+import { DeleteDialog } from '@/components/ui/DeleteDialog';
 import { CategoriesDialog } from '@/components/products/CategoriesDialog';
 import { useProducts } from '@/hooks/use-products';
 import { useCategories } from '@/hooks/use-categories';
@@ -55,6 +55,12 @@ export default function ProductsPage() {
     setDeleteTarget(null);
   }
 
+  const isMany = Array.isArray(deleteTarget);
+  const productName =
+    !isMany && deleteTarget
+      ? `"${deleteTarget.name}"`
+      : `${(deleteTarget as Product[])?.length} productos`;
+
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex items-center justify-between">
@@ -97,9 +103,15 @@ export default function ProductsPage() {
       />
 
       <DeleteDialog
-        target={deleteTarget}
+        isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
+        title={`Eliminar ${productName}`}
+        description={
+          isMany
+            ? `Los ${productName} seleccionados serán eliminados permanentemente.`
+            : `El producto ${productName} y su información de stock serán eliminados. Esta acción no se puede deshacer.`
+        }
       />
 
       <CategoriesDialog
