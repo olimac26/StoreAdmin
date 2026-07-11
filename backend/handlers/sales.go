@@ -176,15 +176,15 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 		var productPrice float64
 		var stock int
 		var productName string
-		err := tx.QueryRow("SELECT price, stock, name FROM products WHERE id = $1", item.ProductID).Scan(&productPrice, &stock, &productName)
+		err := tx.QueryRow("SELECT price, stock, name FROM products WHERE id = $1 AND deleted_at IS NULL", item.ProductID).Scan(&productPrice, &stock, &productName)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				http.Error(w, "Product not found", http.StatusNotFound)
-				return
-			}
-			http.Error(w, "Error loading product", http.StatusInternalServerError)
-			return
-		}
+      if err == sql.ErrNoRows {
+        http.Error(w, fmt.Sprintf("El producto con ID %d está descontinuado o no existe", item.ProductID), http.StatusNotFound)
+        return
+      }
+      http.Error(w, "Error loading product", http.StatusInternalServerError)
+      return
+    }
 		if stock < item.Quantity {
 			http.Error(w, "Insufficient stock for one or more products", http.StatusConflict)
 			return
@@ -218,7 +218,7 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 		unitPrice := item.Price
 		if unitPrice <= 0 {
 			var productPrice float64
-			err = tx.QueryRow("SELECT price FROM products WHERE id = $1", item.ProductID).Scan(&productPrice)
+			err = tx.QueryRow("SELECT price FROM products WHERE id = $1 AND deleted_at IS NULL", item.ProductID).Scan(&productPrice)
 			if err != nil {
 				http.Error(w, "Error fetching product price", http.StatusInternalServerError)
 				return
@@ -346,15 +346,15 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 	total := 0.0
 	for _, item := range items {
 		var stock int
-		err = tx.QueryRow("SELECT stock FROM products WHERE id = $1", item.ProductID).Scan(&stock)
+		err = tx.QueryRow("SELECT stock FROM products WHERE id = $1  AND deleted_at IS NULL", item.ProductID).Scan(&stock)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				http.Error(w, "Product not found", http.StatusNotFound)
-				return
-			}
-			http.Error(w, "Error loading product stock", http.StatusInternalServerError)
-			return
-		}
+      if err == sql.ErrNoRows {
+        http.Error(w, "Uno de los productos seleccionados ya no está disponible en el catálogo activo", http.StatusNotFound)
+        return
+      }
+      http.Error(w, "Error loading product stock", http.StatusInternalServerError)
+      return
+    }
 		if stock < item.Quantity {
 			http.Error(w, "Insufficient stock to apply the update", http.StatusConflict)
 			return
@@ -691,17 +691,17 @@ func loadSale(orderID string) (Sale, error) {
 }
 
 func loadSaleItems(orderID string) ([]SaleItem, error) {
-	rows, err := db.Query(`
-		SELECT oi.product_id, p.name, oi.quantity, oi.price
-		FROM order_items oi
-		JOIN products p ON p.id = oi.product_id
-		WHERE oi.order_id = $1
-		ORDER BY oi.id
-	`, orderID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+  rows, err := db.Query(`
+    SELECT oi.product_id, COALESCE(p.name, 'Producto No Disponible'), oi.quantity, oi.price
+    FROM order_items oi
+    LEFT JOIN products p ON p.id = oi.product_id
+    WHERE oi.order_id = $1
+    ORDER BY oi.id
+  `, orderID)
+  if err != nil {
+    return nil, err
+  }
+  defer rows.Close()
 
 	items := []SaleItem{}
 	for rows.Next() {

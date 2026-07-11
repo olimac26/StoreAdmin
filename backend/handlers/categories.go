@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"github.com/lib/pq"
 )
 
 // GetCategories retrieves all categories
@@ -128,29 +130,39 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 
 // DeleteCategory deletes a category
 func DeleteCategory(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Content-Type", "application/json")
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
+  id, err := strconv.Atoi(r.PathValue("id"))
+  if err != nil {
+    http.Error(w, "Invalid ID", http.StatusBadRequest)
+    return
+  }
 
-	result, err := db.Exec("DELETE FROM categories WHERE id = $1", id)
-	if err != nil {
-		http.Error(w, "Error deleting category", http.StatusInternalServerError)
-		return
-	}
+  result, err := db.Exec("DELETE FROM categories WHERE id = $1", id)
+  if err != nil {
+    if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23503" {
+      w.WriteHeader(http.StatusConflict)
+      response := APIResponse{
+        Success: false,
+        Message: "No se puede eliminar la categoría porque contiene productos asociados.",
+      }
+      json.NewEncoder(w).Encode(response)
+      return
+    }
 
-	rows, err := result.RowsAffected()
-	if err != nil || rows == 0 {
-		http.Error(w, "Category not found", http.StatusNotFound)
-		return
-	}
+    http.Error(w, "Error deleting category", http.StatusInternalServerError)
+    return
+  }
 
-	response := APIResponse{
-		Success: true,
-		Message: "Category deleted successfully",
-	}
-	json.NewEncoder(w).Encode(response)
+  rows, err := result.RowsAffected()
+  if err != nil || rows == 0 {
+    http.Error(w, "Category not found", http.StatusNotFound)
+    return
+  }
+
+  response := APIResponse{
+    Success: true,
+    Message: "Category deleted successfully",
+  }
+  json.NewEncoder(w).Encode(response)
 }

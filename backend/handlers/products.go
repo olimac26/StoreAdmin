@@ -12,12 +12,13 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	rows, err := db.Query(`
-		SELECT p.id, p.name, p.barcode, p.category_id, c.name, p.description, 
-		       p.price, p.cost, p.stock, p.min_stock, p.created_at, p.updated_at 
-		FROM products p
-		LEFT JOIN categories c ON p.category_id = c.id
-		ORDER BY p.name
-	`)
+    SELECT p.id, p.name, p.barcode, p.category_id, c.name, p.description, 
+           p.price, p.cost, p.stock, p.min_stock, p.created_at, p.updated_at 
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.deleted_at IS NULL
+    ORDER BY p.name
+  `)
 	if err != nil {
 		http.Error(w, "Error fetching products", http.StatusInternalServerError)
 		return
@@ -54,15 +55,15 @@ func GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var prod Product
-	err = db.QueryRow(`
-		SELECT p.id, p.name, p.barcode, p.category_id, c.name, p.description, 
-		       p.price, p.cost, p.stock, p.min_stock, p.created_at, p.updated_at 
-		FROM products p
-		LEFT JOIN categories c ON p.category_id = c.id
-		WHERE p.id = $1
-	`, id).Scan(&prod.ID, &prod.Name, &prod.Barcode, &prod.CategoryID, &prod.Category,
-		&prod.Description, &prod.Price, &prod.Cost, &prod.Stock, &prod.MinStock,
-		&prod.CreatedAt, &prod.UpdatedAt)
+  err = db.QueryRow(`
+    SELECT p.id, p.name, p.barcode, p.category_id, c.name, p.description, 
+           p.price, p.cost, p.stock, p.min_stock, p.created_at, p.updated_at 
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = $1 AND p.deleted_at IS NULL
+  `, id).Scan(&prod.ID, &prod.Name, &prod.Barcode, &prod.CategoryID, &prod.Category,
+    &prod.Description, &prod.Price, &prod.Cost, &prod.Stock, &prod.MinStock,
+    &prod.CreatedAt, &prod.UpdatedAt)
 	if err != nil {
 		http.Error(w, "Product not found", http.StatusNotFound)
 		return
@@ -176,7 +177,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		argCount++
 	}
 
-	query += fmt.Sprintf(" WHERE id = $%d", argCount)
+	query += fmt.Sprintf(" WHERE id = $%d AND deleted_at IS NULL", argCount)
 	args = append(args, id)
 
 	result, err := db.Exec(query, args...)
@@ -200,29 +201,33 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 // DeleteProduct deletes a product
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Content-Type", "application/json")
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
+  id, err := strconv.Atoi(r.PathValue("id"))
+  if err != nil {
+    http.Error(w, "Invalid ID", http.StatusBadRequest)
+    return
+  }
 
-	result, err := db.Exec("DELETE FROM products WHERE id = $1", id)
-	if err != nil {
-		http.Error(w, "Error deleting product", http.StatusInternalServerError)
-		return
-	}
+  result, err := db.Exec(`
+    UPDATE products 
+    SET deleted_at = NOW() 
+    WHERE id = $1 AND deleted_at IS NULL
+  `, id)
+  if err != nil {
+    http.Error(w, "Error deleting product", http.StatusInternalServerError)
+    return
+  }
 
-	rows, err := result.RowsAffected()
-	if err != nil || rows == 0 {
-		http.Error(w, "Product not found", http.StatusNotFound)
-		return
-	}
+  rows, err := result.RowsAffected()
+  if err != nil || rows == 0 {
+    http.Error(w, "Product not found or already deleted", http.StatusNotFound)
+    return
+  }
 
-	response := APIResponse{
-		Success: true,
-		Message: "Product deleted successfully",
-	}
-	json.NewEncoder(w).Encode(response)
+  response := APIResponse{
+    Success: true,
+    Message: "Product deleted successfully",
+  }
+  json.NewEncoder(w).Encode(response)
 }

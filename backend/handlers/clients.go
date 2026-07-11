@@ -67,14 +67,15 @@ func nullifyEmptyString(s *string) *string {
 
 // scanClient escanea una fila de client con balance y total precalculados
 const clientSelectSQL = `
-	SELECT 
-		c.id, c.name, c.phone, c.email, c.doc,
-		COALESCE(SUM(CASE WHEN ch.type = 'credit'  THEN ch.amount ELSE 0 END), 0) -
-		COALESCE(SUM(CASE WHEN ch.type = 'payment' THEN ch.amount ELSE 0 END), 0) AS balance,
-		COALESCE(SUM(CASE WHEN ch.type = 'credit'  THEN ch.amount ELSE 0 END), 0) AS total,
-		c.created_at, c.updated_at
-	FROM clients c
-	LEFT JOIN credit_history ch ON c.id = ch.client_id
+  SELECT 
+    c.id, c.name, c.phone, c.email, c.doc,
+    COALESCE(SUM(CASE WHEN ch.type = 'credit'  THEN ch.amount ELSE 0 END), 0) -
+    COALESCE(SUM(CASE WHEN ch.type = 'payment' THEN ch.amount ELSE 0 END), 0) AS balance,
+    COALESCE(SUM(CASE WHEN ch.type = 'credit'  THEN ch.amount ELSE 0 END), 0) AS total,
+    c.created_at, c.updated_at
+  FROM clients c
+  LEFT JOIN credit_history ch ON c.id = ch.client_id
+  WHERE c.deleted_at IS NULL
 `
 
 // ── Handlers ─────────────────────────────────────────────────────────────────
@@ -122,7 +123,7 @@ func GetClient(w http.ResponseWriter, r *http.Request) {
 
 	var c Client
 	err = db.QueryRow(clientSelectSQL+`
-		WHERE c.id = $1
+		AND c.id = $1
 		GROUP BY c.id
 	`, id).Scan(
 		&c.ID, &c.Name, &c.Phone, &c.Email, &c.Doc,
@@ -246,7 +247,7 @@ func UpdateClient(w http.ResponseWriter, r *http.Request) {
 		argc++
 	}
 
-	query += fmt.Sprintf(" WHERE id = $%d", argc)
+	query += fmt.Sprintf(" WHERE id = $%d AND deleted_at IS NULL", argc)
 	args = append(args, id)
 
 	result, err := db.Exec(query, args...)
@@ -267,32 +268,36 @@ func UpdateClient(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// DeleteClient deletes a client and their credit history (CASCADE)
+// DeleteClient marks a client as deleted (Soft Delete)
 func DeleteClient(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Content-Type", "application/json")
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return
-	}
+  id, err := strconv.Atoi(r.PathValue("id"))
+  if err != nil {
+    http.Error(w, "Invalid ID", http.StatusBadRequest)
+    return
+  }
 
-	result, err := db.Exec("DELETE FROM clients WHERE id = $1", id)
-	if err != nil {
-		http.Error(w, "Error deleting client", http.StatusInternalServerError)
-		return
-	}
+  result, err := db.Exec(`
+    UPDATE clients 
+    SET deleted_at = CURRENT_TIMESTAMP 
+    WHERE id = $1 AND deleted_at IS NULL
+  `, id)
+  if err != nil {
+    http.Error(w, "Error deleting client", http.StatusInternalServerError)
+    return
+  }
 
-	rows, err := result.RowsAffected()
-	if err != nil || rows == 0 {
-		http.Error(w, "Client not found", http.StatusNotFound)
-		return
-	}
+  rows, err := result.RowsAffected()
+  if err != nil || rows == 0 {
+    http.Error(w, "Client not found or already deleted", http.StatusNotFound)
+    return
+  }
 
-	json.NewEncoder(w).Encode(APIResponse{
-		Success: true,
-		Message: "Client deleted successfully",
-	})
+  json.NewEncoder(w).Encode(APIResponse{
+    Success: true,
+    Message: "Client deleted successfully",
+  })
 }
 
 // AddCreditEntry adds a credit or payment entry to a client's history
@@ -327,7 +332,7 @@ func AddCreditEntry(w http.ResponseWriter, r *http.Request) {
 
 	// Verificar que el cliente existe
 	var exists bool
-	if err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM clients WHERE id = $1)", clientID).Scan(&exists); err != nil || !exists {
+	if err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM clients WHERE id = $1 AND deleted_at IS NULL)", clientID).Scan(&exists); err != nil || !exists {
 		http.Error(w, "Client not found", http.StatusNotFound)
 		return
 	}
