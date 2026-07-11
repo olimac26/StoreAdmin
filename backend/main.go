@@ -10,47 +10,61 @@ import (
 )
 
 func main() {
-	// Define commands
-	migrateCmd := flag.NewFlagSet("migrate", flag.ExitOnError)
-	serverCmd := flag.NewFlagSet("server", flag.ExitOnError)
+  // Define commands
+  migrateCmd := flag.NewFlagSet("migrate", flag.ExitOnError)
+  serverCmd := flag.NewFlagSet("server", flag.ExitOnError)
+  resetCmd := flag.NewFlagSet("reset", flag.ExitOnError)
 
-	if len(os.Args) < 2 {
-		fmt.Println("Usage:")
-		fmt.Println("  go run . migrate   - Run database migrations")
-		fmt.Println("  go run . server    - Start the server")
-		os.Exit(1)
-	}
+  if len(os.Args) < 2 {
+    fmt.Println("Usage:")
+    fmt.Println("  go run . migrate   - Run database migrations")
+    fmt.Println("  go run . reset     - Reset database (drop all tables)") 
+    fmt.Println("  go run . server    - Start the server")
+    os.Exit(1)
+  }
 
-	switch os.Args[1] {
-	case "migrate":
-		migrateCmd.Parse(os.Args[2:])
-		if err := RunMigrations(); err != nil {
-			log.Fatalf("Migration failed: %v", err)
-		}
+  switch os.Args[1] {
+  case "migrate":
+    migrateCmd.Parse(os.Args[2:])
+    if err := RunMigrations(); err != nil {
+      log.Fatalf("Migration failed: %v", err)
+    }
 
-	case "server":
-		serverCmd.Parse(os.Args[2:])
-		if err := InitDB(); err != nil {
-			log.Fatalf("Failed to initialize database: %v", err)
-		}
-		defer CloseDB()
+  case "reset":
+    resetCmd.Parse(os.Args[2:])
+    if err := InitDB(); err != nil {
+      log.Fatalf("Failed to initialize database for reset: %v", err)
+    }
+    defer CloseDB()
 
-		// Initialize handlers with database connection
-		handlers.InitDB(DB)
+    fmt.Println("Starting database reset...")
+    if err := ResetMigrations(); err != nil {
+      log.Fatalf("Reset failed: %v", err)
+    }
 
-		// Register routes (already wrapped with CORS)
-		mux := RegisterRoutes()
+  case "server":
+    serverCmd.Parse(os.Args[2:])
+    if err := InitDB(); err != nil {
+      log.Fatalf("Failed to initialize database: %v", err)
+    }
+    defer CloseDB()
 
-		// Start server
-		port := ":8080"
-		fmt.Printf("Server started on http://localhost:8080\n")
+    // Initialize handlers with database connection
+    handlers.InitDB(DB)
 
-		if err := http.ListenAndServe(port, *mux); err != nil {
-			log.Fatalf("Server error: %v", err)
-		}
+    // Register routes (already wrapped with CORS)
+    mux := RegisterRoutes()
 
-	default:
-		fmt.Printf("Unknown command: %s\n", os.Args[1])
-		os.Exit(1)
-	}
+    // Start server
+    port := ":8080"
+    fmt.Printf("Server started on http://localhost:8080\n")
+
+    if err := http.ListenAndServe(port, *mux); err != nil {
+      log.Fatalf("Server error: %v", err)
+    }
+
+  default:
+    fmt.Printf("Unknown command: %s\n", os.Args[1])
+    os.Exit(1)
+  }
 }

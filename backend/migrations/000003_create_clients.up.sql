@@ -6,7 +6,8 @@ CREATE TABLE clients (
     email       VARCHAR(255),
     doc         VARCHAR(100),
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 -- Create credit history table
@@ -21,9 +22,10 @@ CREATE TABLE credit_history (
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE UNIQUE INDEX idx_clients_doc_active ON clients(doc) WHERE deleted_at IS NULL;
+CREATE INDEX idx_clients_name ON clients(name) WHERE deleted_at IS NULL;
+
 -- Create indexes
-CREATE INDEX idx_clients_name      ON clients(name);
-CREATE INDEX idx_clients_doc       ON clients(doc);
 CREATE INDEX idx_clients_email     ON clients(email);
 CREATE INDEX idx_credit_client_id  ON credit_history(client_id);
 CREATE INDEX idx_credit_type       ON credit_history(type);

@@ -31,7 +31,7 @@ migrate-down:
 	migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/storedb?sslmode=disable" down 1
 
 migrate-reset:
-	migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/storedb?sslmode=disable" down
+	go run . reset
 
 server:
 	go run . server

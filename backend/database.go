@@ -64,6 +64,30 @@ func RunMigrations() error {
 	return nil
 }
 
+// ResetMigrations rolls back all applied migrations (drops all tables)
+func ResetMigrations() error {
+  dbURL := os.Getenv("DATABASE_URL")
+  if dbURL == "" {
+    dbURL = "postgres://postgres:postgres@localhost:5432/storedb?sslmode=disable"
+  }
+
+  m, err := migrate.New(
+    "file://migrations",
+    dbURL,
+  )
+  if err != nil {
+    return fmt.Errorf("error creating migration instance for reset: %w", err)
+  }
+
+  // m.Down() revierte TODAS las migraciones en orden inverso
+  if err := m.Down(); err != nil && err != migrate.ErrNoChange {
+    return fmt.Errorf("error resetting migrations: %w", err)
+  }
+
+  fmt.Println("Database reset completed successfully (all tables dropped).")
+  return nil
+}
+
 // CloseDB closes the database connection
 func CloseDB() error {
 	if DB != nil {
