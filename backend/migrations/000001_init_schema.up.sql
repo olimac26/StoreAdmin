@@ -7,6 +7,10 @@ CREATE TABLE categories (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO categories (id, name, description) 
+VALUES (1, 'Sin Categoría', 'Categoría por defecto para productos desvinculados')
+ON CONFLICT (id) DO NOTHING;
+
 -- Create products table
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
