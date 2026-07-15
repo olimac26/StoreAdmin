@@ -15,6 +15,7 @@ export default function Home() {
         onSearch={pos.setSearchQuery}
         activeCategory={pos.activeCategory}
         onCategory={pos.setActiveCategory}
+        categories={pos.categories}
       />
       <Cart
         items={pos.cartItems}

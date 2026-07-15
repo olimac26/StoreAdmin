@@ -14,6 +14,7 @@ interface ProductGridProps {
   onSearch: (q: string) => void;
   activeCategory: string;
   onCategory: (cat: string) => void;
+  categories: string[];
 }
 
 export function ProductGrid({
@@ -23,6 +24,7 @@ export function ProductGrid({
   onSearch,
   activeCategory,
   onCategory,
+  categories,
 }: ProductGridProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden border-r">
@@ -44,7 +46,11 @@ export function ProductGrid({
       </div>
 
       {/* Categorías */}
-      <CategoryFilter active={activeCategory} onChange={onCategory} />
+      <CategoryFilter
+        active={activeCategory}
+        categories={categories}
+        onChange={onCategory}
+      />
 
       {/* Grilla */}
       <div className="flex-1 overflow-y-auto p-4 grid grid-cols-4 gap-3 content-start">
