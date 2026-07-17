@@ -27,28 +27,21 @@ CREATE TABLE products (
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL 
 );
 
--- Create orders table
-CREATE TABLE orders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    customer VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'pending',
-    total DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Create clients table
+CREATE TABLE clients (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    phone       VARCHAR(50),
+    email       VARCHAR(255),
+    doc         VARCHAR(100),
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at  TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
--- Create order items table
-CREATE TABLE order_items (
-    id SERIAL PRIMARY KEY,
-    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    product_id INT NOT NULL REFERENCES products(id),
-    quantity INT NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create indexes
+-- Indexes for clients and products
 CREATE UNIQUE INDEX idx_products_barcode_active ON products(barcode) WHERE deleted_at IS NULL;
 CREATE INDEX idx_products_category_id ON products(category_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_orders_customer ON orders(customer);
-CREATE INDEX idx_order_items_order_id ON order_items(order_id);
-CREATE INDEX idx_order_items_product_id ON order_items(product_id);
+CREATE UNIQUE INDEX idx_clients_doc_active ON clients(doc) WHERE deleted_at IS NULL;
+CREATE INDEX idx_clients_name ON clients(name) WHERE deleted_at IS NULL;
+CREATE INDEX idx_clients_email ON clients(email);

@@ -18,6 +18,8 @@ export default function Home() {
         categories={pos.categories}
       />
       <Cart
+        clientId={pos.clientId}
+        onClientSelect={pos.setClientId}
         items={pos.cartItems}
         onChangeQty={pos.changeQty}
         onClear={pos.clearCart}

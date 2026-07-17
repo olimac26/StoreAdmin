@@ -15,6 +15,8 @@ interface CartProps {
   onPayMethod: (m: PayMethod) => void;
   customerName: string;
   onCustomerName: (v: string) => void;
+  clientId: number | null;
+  onClientSelect: (id: number | null) => void;
   customerError?: string;
   subtotal: number;
   total: number;
@@ -29,6 +31,8 @@ export function Cart({
   onPayMethod,
   customerName,
   onCustomerName,
+  clientId,
+  onClientSelect,
   customerError,
   subtotal,
   total,
@@ -80,6 +84,8 @@ export function Cart({
           onPayMethod={onPayMethod}
           customerName={customerName}
           onCustomerName={onCustomerName}
+          clientId={clientId}
+          onClientSelect={onClientSelect}
           total={total}
           disabled={items.length === 0}
           onCheckout={onCheckout}

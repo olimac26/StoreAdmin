@@ -1,3 +1,4 @@
+-- Alter orders table to support extra POS properties
 ALTER TABLE orders
 ADD COLUMN payment_method VARCHAR(50) NOT NULL DEFAULT 'efectivo',
 ADD COLUMN notes TEXT DEFAULT '',

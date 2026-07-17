@@ -1,4 +1,3 @@
-// hooks/use-clients.ts
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -122,8 +121,8 @@ export function useClients() {
   // ── Crear cliente ─────────────────────────────────────────────────────────
   async function create(
     data: Omit<Client, 'id' | 'history' | 'balance' | 'total'>,
-  ) {
-    await apiFetch<{ id: number }>('/api/clients', {
+  ): Promise<Client> {
+    const response = await apiFetch<{ id: number }>('/api/clients', {
       method: 'POST',
       body: JSON.stringify({
         name: data.name,
@@ -132,7 +131,23 @@ export function useClients() {
         doc: data.doc ?? null,
       }),
     });
+
+    const newClient: Client = {
+      id: response.id,
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      doc: data.doc,
+      balance: 0,
+      total: 0,
+      history: [],
+    };
+
+    setClients((prev) => [...prev, newClient]);
+
     refetch();
+
+    return newClient;
   }
 
   // ── Actualizar cliente ────────────────────────────────────────────────────

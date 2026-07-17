@@ -13,6 +13,7 @@ import (
 type Sale struct {
 	ID            string     `json:"id"`
 	Customer      string     `json:"customer"`
+	ClientID      *int       `json:"clientId,omitempty"`
 	Status        string     `json:"status"`
 	Total         float64    `json:"total"`
 	PaymentMethod string     `json:"paymentMethod"`
@@ -35,6 +36,7 @@ type SaleItem struct {
 
 type createSaleRequest struct {
 	Customer      string              `json:"customer"`
+	ClientID      *int                `json:"clientId,omitempty"`
 	Status        string              `json:"status"`
 	PaymentMethod string              `json:"paymentMethod"`
 	Notes         string              `json:"notes"`
@@ -49,6 +51,7 @@ type createSaleItemReq struct {
 
 type updateSaleRequest struct {
 	Customer      *string              `json:"customer"`
+	ClientID      *int                 `json:"clientId,omitempty"`
 	Status        *string              `json:"status"`
 	PaymentMethod *string              `json:"paymentMethod"`
 	Notes         *string              `json:"notes"`
@@ -74,7 +77,7 @@ func GetSales(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	rows, err := db.Query(`
-		SELECT id, customer, status, total, payment_method, notes, is_voided, voided_at, void_reason, created_at, updated_at
+		SELECT id, customer, client_id, status, total, payment_method, notes, is_voided, voided_at, void_reason, created_at, updated_at
 		FROM orders
 		ORDER BY created_at DESC
 	`)
@@ -89,17 +92,27 @@ func GetSales(w http.ResponseWriter, r *http.Request) {
 		var sale Sale
 		var voidedAt sql.NullTime
 		var voidReason sql.NullString
-		if err := rows.Scan(&sale.ID, &sale.Customer, &sale.Status, &sale.Total, &sale.PaymentMethod,
-			&sale.Notes, &sale.IsVoided, &voidedAt, &voidReason, &sale.CreatedAt, &sale.UpdatedAt); err != nil {
-			http.Error(w, "Error scanning sale", http.StatusInternalServerError)
+		var clientID sql.NullInt64
+
+		if err := rows.Scan(
+			&sale.ID, &sale.Customer, &clientID, &sale.Status, &sale.Total, &sale.PaymentMethod,
+			&sale.Notes, &sale.IsVoided, &voidedAt, &voidReason, &sale.CreatedAt, &sale.UpdatedAt,
+		); err != nil {
+			http.Error(w, "Error scanning sale: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		if voidedAt.Valid {
 			sale.VoidedAt = &voidedAt.Time
 		}
 		if voidReason.Valid {
 			sale.VoidReason = &voidReason.String
 		}
+		if clientID.Valid {
+			cid := int(clientID.Int64)
+			sale.ClientID = &cid
+		}
+
 		items, err := loadSaleItems(sale.ID)
 		if err != nil {
 			http.Error(w, "Error loading sale items", http.StatusInternalServerError)
@@ -152,11 +165,19 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := normalizeSaleStatus(req.Status)
-	paymentMethod := strings.TrimSpace(req.PaymentMethod)
+	paymentMethod := strings.ToLower(strings.TrimSpace(req.PaymentMethod))
 	if paymentMethod == "" {
 		paymentMethod = "efectivo"
 	}
+
+	if paymentMethod == "credito" {
+		if req.ClientID == nil || *req.ClientID <= 0 {
+			http.Error(w, "Para registrar una venta a crédito debes seleccionar un cliente registrado", http.StatusBadRequest)
+			return
+		}
+	}
+
+	status := normalizeSaleStatus(req.Status)
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -166,7 +187,6 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 
 	total := 0.0
-	var orderID string
 	for _, item := range req.Items {
 		if item.Quantity <= 0 || item.ProductID <= 0 {
 			http.Error(w, "Each item requires a valid product and quantity", http.StatusBadRequest)
@@ -178,15 +198,15 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 		var productName string
 		err := tx.QueryRow("SELECT price, stock, name FROM products WHERE id = $1 AND deleted_at IS NULL", item.ProductID).Scan(&productPrice, &stock, &productName)
 		if err != nil {
-      if err == sql.ErrNoRows {
-        http.Error(w, fmt.Sprintf("El producto con ID %d está descontinuado o no existe", item.ProductID), http.StatusNotFound)
-        return
-      }
-      http.Error(w, "Error loading product", http.StatusInternalServerError)
-      return
-    }
+			if err == sql.ErrNoRows {
+				http.Error(w, fmt.Sprintf("El producto con ID %d está descontinuado o no existe", item.ProductID), http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Error loading product", http.StatusInternalServerError)
+			return
+		}
 		if stock < item.Quantity {
-			http.Error(w, "Insufficient stock for one or more products", http.StatusConflict)
+			http.Error(w, fmt.Sprintf("Stock insuficiente para %s. Disponible: %d, Solicitado: %d", productName, stock, item.Quantity), http.StatusConflict)
 			return
 		}
 
@@ -201,16 +221,16 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error updating stock", http.StatusInternalServerError)
 			return
 		}
-		_ = productName
 	}
 
+	var orderID string
 	err = tx.QueryRow(`
-		INSERT INTO orders (customer, status, total, payment_method, notes)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO orders (customer, client_id, status, total, payment_method, notes)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id
-	`, strings.TrimSpace(req.Customer), status, total, paymentMethod, req.Notes).Scan(&orderID)
+	`, strings.TrimSpace(req.Customer), req.ClientID, status, total, paymentMethod, req.Notes).Scan(&orderID)
 	if err != nil {
-		http.Error(w, "Error creating sale", http.StatusInternalServerError)
+		http.Error(w, "Error creating sale: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -235,6 +255,18 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if paymentMethod == "credito" {
+		description := fmt.Sprintf("Compra POS - Orden #%s", orderID[0:8])
+		_, err = tx.Exec(`
+			INSERT INTO credit_history (client_id, type, description, amount, order_id, date)
+			VALUES ($1, 'credit', $2, $3, $4, CURRENT_DATE)
+		`, *req.ClientID, description, total, orderID)
+		if err != nil {
+			http.Error(w, "Error registering credit history: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		http.Error(w, "Error committing sale", http.StatusInternalServerError)
 		return
@@ -251,7 +283,7 @@ func CreateSale(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// UpdateSale updates an existing sale without deleting it.
+// UpdateSale actualiza campos de la orden (sin afectar la integridad del crédito original).
 func UpdateSale(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -282,12 +314,17 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 	}
 
 	customer := existingSale.Customer
+	clientID := existingSale.ClientID
 	status := normalizeSaleStatus(existingSale.Status)
 	paymentMethod := existingSale.PaymentMethod
 	notes := existingSale.Notes
 	items := existingSale.Items
+
 	if req.Customer != nil {
 		customer = strings.TrimSpace(*req.Customer)
+	}
+	if req.ClientID != nil {
+		clientID = req.ClientID
 	}
 	if req.Status != nil {
 		status = normalizeSaleStatus(*req.Status)
@@ -301,6 +338,7 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 	if req.Notes != nil {
 		notes = *req.Notes
 	}
+
 	if req.Items != nil {
 		items = []SaleItem{}
 		for _, item := range *req.Items {
@@ -346,20 +384,21 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 	total := 0.0
 	for _, item := range items {
 		var stock int
-		err = tx.QueryRow("SELECT stock FROM products WHERE id = $1  AND deleted_at IS NULL", item.ProductID).Scan(&stock)
+		err = tx.QueryRow("SELECT stock FROM products WHERE id = $1 AND deleted_at IS NULL", item.ProductID).Scan(&stock)
 		if err != nil {
-      if err == sql.ErrNoRows {
-        http.Error(w, "Uno de los productos seleccionados ya no está disponible en el catálogo activo", http.StatusNotFound)
-        return
-      }
-      http.Error(w, "Error loading product stock", http.StatusInternalServerError)
-      return
-    }
+			if err == sql.ErrNoRows {
+				http.Error(w, "Uno de los productos seleccionados ya no está disponible en el catálogo activo", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Error loading product stock", http.StatusInternalServerError)
+			return
+		}
 		if stock < item.Quantity {
 			http.Error(w, "Insufficient stock to apply the update", http.StatusConflict)
 			return
 		}
 		total += item.Price * float64(item.Quantity)
+
 		_, err = tx.Exec("UPDATE products SET stock = stock - $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2", item.Quantity, item.ProductID)
 		if err != nil {
 			http.Error(w, "Error updating stock for updated sale", http.StatusInternalServerError)
@@ -369,9 +408,9 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 
 	_, err = tx.Exec(`
 		UPDATE orders
-		SET customer = $1, status = $2, total = $3, payment_method = $4, notes = $5, updated_at = CURRENT_TIMESTAMP
-		WHERE id = $6
-	`, customer, status, total, paymentMethod, notes, id)
+		SET customer = $1, client_id = $2, status = $3, total = $4, payment_method = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $7
+	`, customer, clientID, status, total, paymentMethod, notes, id)
 	if err != nil {
 		http.Error(w, "Error updating sale", http.StatusInternalServerError)
 		return
@@ -385,6 +424,22 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, "Error storing updated sale items", http.StatusInternalServerError)
 			return
+		}
+	}
+
+	if existingSale.PaymentMethod == "credito" || paymentMethod == "credito" {
+		_, _ = tx.Exec("DELETE FROM credit_history WHERE order_id = $1", id)
+
+		if paymentMethod == "credito" && clientID != nil {
+			description := fmt.Sprintf("Compra POS (Modificada) - Orden #%s", id[0:8])
+			_, err = tx.Exec(`
+				INSERT INTO credit_history (client_id, type, description, amount, order_id, date)
+				VALUES ($1, 'credit', $2, $3, $4, CURRENT_DATE)
+			`, *clientID, description, total, id)
+			if err != nil {
+				http.Error(w, "Error updating client credit entry", http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 
@@ -403,7 +458,6 @@ func UpdateSale(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// CancelSale marks a sale as voided instead of deleting it.
 func CancelSale(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -448,6 +502,14 @@ func CancelSale(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if sale.PaymentMethod == "credito" && sale.ClientID != nil {
+		_, err = tx.Exec("DELETE FROM credit_history WHERE order_id = $1 AND client_id = $2", id, *sale.ClientID)
+		if err != nil {
+			http.Error(w, "Error reversing client credit record", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	var voidReason *string
 	if strings.TrimSpace(req.Reason) != "" {
 		voidReason = &req.Reason
@@ -480,14 +542,12 @@ func CancelSale(w http.ResponseWriter, r *http.Request) {
 func DeleteSale(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// 1. Obtener y validar el ID de la venta
 	id := r.PathValue("id")
 	if strings.TrimSpace(id) == "" {
 		http.Error(w, "Invalid sale ID", http.StatusBadRequest)
 		return
 	}
 
-	// 2. Cargar la venta existente para conocer los productos y cantidades a restaurar
 	sale, err := loadSale(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -498,7 +558,6 @@ func DeleteSale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Iniciar la transacción
 	tx, err := db.Begin()
 	if err != nil {
 		http.Error(w, "Error starting transaction", http.StatusInternalServerError)
@@ -506,8 +565,6 @@ func DeleteSale(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	// 4. Si la venta NO estaba anulada, devolvemos el stock al inventario
-	// (Si ya estaba anulada, el stock ya se restauró en CancelSale)
 	if !sale.IsVoided {
 		for _, item := range sale.Items {
 			_, err = tx.Exec(`
@@ -520,38 +577,40 @@ func DeleteSale(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
+		if sale.PaymentMethod == "credito" && sale.ClientID != nil {
+			_, err = tx.Exec("DELETE FROM credit_history WHERE order_id = $1 AND client_id = $2", id, *sale.ClientID)
+			if err != nil {
+				http.Error(w, "Error removing client credit record on deletion", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
-	// 5. Eliminar los items de la orden (por restricciones de clave foránea)
 	_, err = tx.Exec("DELETE FROM order_items WHERE order_id = $1", id)
 	if err != nil {
 		http.Error(w, "Error removing sale items", http.StatusInternalServerError)
 		return
 	}
 
-	// 6. Eliminar la venta de la tabla principal
 	_, err = tx.Exec("DELETE FROM orders WHERE id = $1", id)
 	if err != nil {
 		http.Error(w, "Error deleting sale record", http.StatusInternalServerError)
 		return
 	}
 
-	// 7. Confirmar los cambios en la base de datos
 	if err := tx.Commit(); err != nil {
 		http.Error(w, "Error committing deletion", http.StatusInternalServerError)
 		return
 	}
 
-	// 8. Responder con éxito
 	w.WriteHeader(http.StatusOK)
 	response := APIResponse{
-		Success: true, 
-		Message: fmt.Sprintf("Sale %s permanently deleted and stock adjusted", id),
+		Success: true,
+		Message: fmt.Sprintf("Sale %s permanently deleted and records cleared", id),
 	}
 	json.NewEncoder(w).Encode(response)
 }
-
-// ReturnSale applies partial returns to a sale and restores stock.
 func ReturnSale(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -627,8 +686,8 @@ func ReturnSale(w http.ResponseWriter, r *http.Request) {
 		currentItems[item.ProductID] = nextQty
 	}
 
-	var total float64
-	err = tx.QueryRow("SELECT COALESCE(SUM(quantity * price), 0) FROM order_items WHERE order_id = $1", id).Scan(&total)
+	var newTotal float64
+	err = tx.QueryRow("SELECT COALESCE(SUM(quantity * price), 0) FROM order_items WHERE order_id = $1", id).Scan(&newTotal)
 	if err != nil {
 		http.Error(w, "Error recalculating sale total", http.StatusInternalServerError)
 		return
@@ -642,10 +701,22 @@ func ReturnSale(w http.ResponseWriter, r *http.Request) {
 		notes += "Devolución: " + strings.TrimSpace(req.Reason)
 	}
 
-	_, err = tx.Exec("UPDATE orders SET total = $1, notes = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", total, notes, id)
+	_, err = tx.Exec("UPDATE orders SET total = $1, notes = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3", newTotal, notes, id)
 	if err != nil {
 		http.Error(w, "Error updating sale after return", http.StatusInternalServerError)
 		return
+	}
+
+	if sale.PaymentMethod == "credito" && sale.ClientID != nil {
+		if newTotal <= 0 {
+			_, err = tx.Exec("DELETE FROM credit_history WHERE order_id = $1 AND client_id = $2", id, *sale.ClientID)
+		} else {
+			_, err = tx.Exec("UPDATE credit_history SET amount = $1 WHERE order_id = $2 AND client_id = $3", newTotal, id, *sale.ClientID)
+		}
+		if err != nil {
+			http.Error(w, "Error updating credit history record on return", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -667,21 +738,31 @@ func loadSale(orderID string) (Sale, error) {
 	var sale Sale
 	var voidedAt sql.NullTime
 	var voidReason sql.NullString
+	var clientID sql.NullInt64
+
 	err := db.QueryRow(`
-		SELECT id, customer, status, total, payment_method, notes, is_voided, voided_at, void_reason, created_at, updated_at
+		SELECT id, customer, client_id, status, total, payment_method, notes, is_voided, voided_at, void_reason, created_at, updated_at
 		FROM orders
 		WHERE id = $1
-	`, orderID).Scan(&sale.ID, &sale.Customer, &sale.Status, &sale.Total, &sale.PaymentMethod, &sale.Notes,
-		&sale.IsVoided, &voidedAt, &voidReason, &sale.CreatedAt, &sale.UpdatedAt)
+	`, orderID).Scan(
+		&sale.ID, &sale.Customer, &clientID, &sale.Status, &sale.Total, &sale.PaymentMethod, &sale.Notes,
+		&sale.IsVoided, &voidedAt, &voidReason, &sale.CreatedAt, &sale.UpdatedAt,
+	)
 	if err != nil {
 		return Sale{}, err
 	}
+
 	if voidedAt.Valid {
 		sale.VoidedAt = &voidedAt.Time
 	}
 	if voidReason.Valid {
 		sale.VoidReason = &voidReason.String
 	}
+	if clientID.Valid {
+		cid := int(clientID.Int64)
+		sale.ClientID = &cid
+	}
+
 	items, err := loadSaleItems(orderID)
 	if err != nil {
 		return Sale{}, err
@@ -691,17 +772,17 @@ func loadSale(orderID string) (Sale, error) {
 }
 
 func loadSaleItems(orderID string) ([]SaleItem, error) {
-  rows, err := db.Query(`
-    SELECT oi.product_id, COALESCE(p.name, 'Producto No Disponible'), oi.quantity, oi.price
-    FROM order_items oi
-    LEFT JOIN products p ON p.id = oi.product_id
-    WHERE oi.order_id = $1
-    ORDER BY oi.id
-  `, orderID)
-  if err != nil {
-    return nil, err
-  }
-  defer rows.Close()
+	rows, err := db.Query(`
+		SELECT oi.product_id, COALESCE(p.name, 'Producto No Disponible'), oi.quantity, oi.price
+		FROM order_items oi
+		LEFT JOIN products p ON p.id = oi.product_id
+		WHERE oi.order_id = $1
+		ORDER BY oi.id
+	`, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	items := []SaleItem{}
 	for rows.Next() {

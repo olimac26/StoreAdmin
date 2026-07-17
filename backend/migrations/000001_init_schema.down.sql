@@ -1,5 +1,4 @@
--- Drop tables in reverse order of creation (due to foreign keys)
-DROP TABLE IF EXISTS order_items;
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS categories;
+-- Eliminar tablas base en orden
+DROP TABLE IF EXISTS clients CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;

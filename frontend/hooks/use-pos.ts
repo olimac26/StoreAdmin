@@ -27,6 +27,7 @@ export function usePOS() {
   const [activeCategory, setActiveCategory] = useState('todos');
   const [payMethod, setPayMethod] = useState<PayMethod>('efectivo');
   const [customerName, setCustomerName] = useState('');
+  const [clientId, setClientId] = useState<number | null>(null);
   const [customerError, setCustomerError] = useState('');
 
   // Map backend category names to product category field
@@ -76,6 +77,9 @@ export function usePOS() {
     if (customerError && value.trim()) {
       setCustomerError('');
     }
+    if (!value.trim()) {
+      setClientId(null);
+    }
   }
 
   function handlePayMethodChange(value: PayMethod) {
@@ -90,11 +94,13 @@ export function usePOS() {
 
     const normalizedCustomer = normalizeCustomerName(customerName);
 
-    if (payMethod === 'credito' && normalizedCustomer.trim() === '') {
-      setCustomerError(
-        'El nombre del cliente es obligatorio para ventas a crédito.',
-      );
-      return;
+    if (payMethod === 'credito') {
+      if (normalizedCustomer.trim() === '' || !clientId) {
+        setCustomerError(
+          'Debes buscar y seleccionar un cliente registrado para ventas a crédito.',
+        );
+        return;
+      }
     }
 
     setCustomerError('');
@@ -103,6 +109,8 @@ export function usePOS() {
       customer:
         payMethod === 'credito' ? normalizedCustomer : 'Cliente general',
       paymentMethod: payMethod,
+      clientId: payMethod === 'credito' ? clientId : null,
+      client_id: payMethod === 'credito' ? clientId : null,
       notes: 'Venta registrada desde POS',
       items: cartItems.map((item) => ({
         productId: item.id,
@@ -114,6 +122,7 @@ export function usePOS() {
     await createSale(payload);
     clearCart();
     setCustomerName('');
+    setClientId(null);
   }
 
   const subtotal = cartItems.reduce((a, i) => a + i.price * i.qty, 0);
@@ -137,6 +146,8 @@ export function usePOS() {
     setPayMethod: handlePayMethodChange,
     customerName,
     setCustomerName: handleCustomerNameChange,
+    clientId,
+    setClientId,
     addToCart,
     changeQty,
     clearCart,

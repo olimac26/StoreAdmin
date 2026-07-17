@@ -1,0 +1,7 @@
+ALTER TABLE orders
+DROP COLUMN IF EXISTS payment_method,
+DROP COLUMN IF EXISTS notes,
+DROP COLUMN IF EXISTS updated_at,
+DROP COLUMN IF EXISTS is_voided,
+DROP COLUMN IF EXISTS voided_at,
+DROP COLUMN IF EXISTS void_reason;

@@ -19,6 +19,8 @@ interface PaymentPanelProps {
   onPayMethod: (m: PayMethod) => void;
   customerName: string;
   onCustomerName: (v: string) => void;
+  clientId: number | null;
+  onClientSelect: (id: number | null) => void;
   total: number;
   disabled: boolean;
   onCheckout: () => void;
@@ -30,11 +32,15 @@ export function PaymentPanel({
   onPayMethod,
   customerName,
   onCustomerName,
+  clientId,
+  onClientSelect,
   total,
   disabled,
   onCheckout,
   customerError,
 }: PaymentPanelProps) {
+  const isCheckoutDisabled = disabled || (payMethod === 'credito' && !clientId);
+
   return (
     <div className="space-y-2.5">
       {/* Selector de método */}
@@ -66,16 +72,25 @@ export function PaymentPanel({
               error={customerError}
               value={customerName}
               onChange={onCustomerName}
+              clientId={clientId}
+              onClientSelect={onClientSelect}
             />
           )}
         </div>
       )}
 
       {/* Botón cobrar */}
-      <Button className="w-full" disabled={disabled} onClick={onCheckout}>
-        {disabled ? (
+      <Button
+        className="w-full"
+        disabled={isCheckoutDisabled}
+        onClick={onCheckout}
+      >
+        {isCheckoutDisabled ? (
           <>
-            <Lock className="w-3.5 h-3.5 mr-1.5" /> Cobrar
+            <Lock className="w-3.5 h-3.5 mr-1.5" />
+            {payMethod === 'credito' && !clientId
+              ? 'Seleccione un Cliente'
+              : 'Cobrar'}
           </>
         ) : (
           <>

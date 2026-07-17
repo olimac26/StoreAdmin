@@ -10,18 +10,50 @@ import { ClientMutationPayload } from '@/types/client';
 interface CreditPaymentProps {
   value: string;
   onChange: (v: string) => void;
+  clientId: number | null;
+  onClientSelect: (id: number | null) => void;
   error?: string;
 }
 
-export function CreditPayment({ value, onChange, error }: CreditPaymentProps) {
+export function CreditPayment({
+  value,
+  onChange,
+  clientId,
+  onClientSelect,
+  error,
+}: CreditPaymentProps) {
   const { clients, create, loading } = useClients();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // CAMBIADO: El tipo correcto aquí es ClientMutationPayload
+  function handleSelectChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const selectedIdStr = event.target.value;
+
+    if (selectedIdStr === '') {
+      onClientSelect(null);
+      onChange('');
+      return;
+    }
+
+    const selectedId = Number(selectedIdStr);
+    const client = clients.find((c) => c.id === selectedId);
+
+    if (client) {
+      onClientSelect(client.id);
+      onChange(client.name);
+    }
+  }
+
   async function handleCreateClient(data: ClientMutationPayload) {
     try {
-      await create(data);
-      onChange(data.name);
+      const newClient = await create(data);
+
+      if (newClient && newClient.id) {
+        onClientSelect(newClient.id);
+        onChange(newClient.name);
+      } else {
+        // Fallback en caso de que el hook no retorne la entidad directa
+        onChange(data.name);
+      }
       setIsDialogOpen(false);
     } catch (err) {
       console.error('Error al crear cliente desde POS:', err);
@@ -33,8 +65,8 @@ export function CreditPayment({ value, onChange, error }: CreditPaymentProps) {
       <div className="flex gap-1.5">
         <div className="relative flex-1">
           <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={clientId ?? ''}
+            onChange={handleSelectChange}
             aria-invalid={Boolean(error)}
             className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -43,7 +75,7 @@ export function CreditPayment({ value, onChange, error }: CreditPaymentProps) {
               <option disabled>Cargando clientes...</option>
             ) : (
               clients.map((client) => (
-                <option key={client.id} value={client.name}>
+                <option key={client.id} value={client.id}>
                   {client.name} {client.doc ? `(${client.doc})` : ''} — Saldo: $
                   {client.balance.toLocaleString('es-CO')}
                 </option>
