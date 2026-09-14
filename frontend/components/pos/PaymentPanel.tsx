@@ -7,6 +7,7 @@ import { CashPayment } from './methods/CashPayment';
 import { QRPayment } from './methods/QRPayment';
 import { CreditPayment } from './methods/CreditPayment';
 import { PayMethod } from '@/types/pos';
+import { usePOSStore } from '@/stores/use-store-pos';
 
 const METHODS: { id: PayMethod; label: string; icon: string }[] = [
   { id: 'efectivo', label: 'Efectivo', icon: '💵' },
@@ -15,30 +16,20 @@ const METHODS: { id: PayMethod; label: string; icon: string }[] = [
 ];
 
 interface PaymentPanelProps {
-  payMethod: PayMethod;
-  onPayMethod: (m: PayMethod) => void;
-  customerName: string;
-  onCustomerName: (v: string) => void;
-  clientId: number | null;
-  onClientSelect: (id: number | null) => void;
   total: number;
   disabled: boolean;
   onCheckout: () => void;
-  customerError?: string;
 }
 
 export function PaymentPanel({
-  payMethod,
-  onPayMethod,
-  customerName,
-  onCustomerName,
-  clientId,
-  onClientSelect,
   total,
   disabled,
   onCheckout,
-  customerError,
 }: PaymentPanelProps) {
+  const payMethod = usePOSStore((s) => s.payMethod);
+  const setPayMethod = usePOSStore((s) => s.setPayMethod);
+  const clientId = usePOSStore((s) => s.clientId);
+
   const isCheckoutDisabled = disabled || (payMethod === 'credito' && !clientId);
 
   return (
@@ -48,7 +39,7 @@ export function PaymentPanel({
         {METHODS.map((m) => (
           <button
             key={m.id}
-            onClick={() => onPayMethod(m.id)}
+            onClick={() => setPayMethod(m.id)}
             className={cn(
               'flex flex-col items-center gap-1 py-2 rounded-lg border text-xs transition-colors',
               payMethod === m.id
@@ -67,15 +58,7 @@ export function PaymentPanel({
         <div>
           {payMethod === 'efectivo' && <CashPayment total={total} />}
           {payMethod === 'transferencia' && <QRPayment total={total} />}
-          {payMethod === 'credito' && (
-            <CreditPayment
-              error={customerError}
-              value={customerName}
-              onChange={onCustomerName}
-              clientId={clientId}
-              onClientSelect={onClientSelect}
-            />
-          )}
+          {payMethod === 'credito' && <CreditPayment />}
         </div>
       )}
 

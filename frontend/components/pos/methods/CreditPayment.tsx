@@ -6,31 +6,23 @@ import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/use-clients';
 import { ClientFormDialog } from '@/components/clients/ClientFormDialog';
 import { ClientMutationPayload } from '@/types/client';
+import { usePOSStore } from '@/stores/use-store-pos';
 
-interface CreditPaymentProps {
-  value: string;
-  onChange: (v: string) => void;
-  clientId: number | null;
-  onClientSelect: (id: number | null) => void;
-  error?: string;
-}
-
-export function CreditPayment({
-  value,
-  onChange,
-  clientId,
-  onClientSelect,
-  error,
-}: CreditPaymentProps) {
+export function CreditPayment() {
   const { clients, create, loading } = useClients();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const setCustomerName = usePOSStore((s) => s.setCustomerName);
+  const customerError = usePOSStore((s) => s.customerError);
+  const setClientId = usePOSStore((s) => s.setClientId);
+  const clientId = usePOSStore((s) => s.clientId);
 
   function handleSelectChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const selectedIdStr = event.target.value;
 
     if (selectedIdStr === '') {
-      onClientSelect(null);
-      onChange('');
+      setClientId(null);
+      setCustomerName('');
       return;
     }
 
@@ -38,8 +30,8 @@ export function CreditPayment({
     const client = clients.find((c) => c.id === selectedId);
 
     if (client) {
-      onClientSelect(client.id);
-      onChange(client.name);
+      setClientId(client.id);
+      setCustomerName(client.name);
     }
   }
 
@@ -48,11 +40,10 @@ export function CreditPayment({
       const newClient = await create(data);
 
       if (newClient && newClient.id) {
-        onClientSelect(newClient.id);
-        onChange(newClient.name);
+        setClientId(newClient.id);
+        setCustomerName(newClient.name);
       } else {
-        // Fallback en caso de que el hook no retorne la entidad directa
-        onChange(data.name);
+        setCustomerName(data.name);
       }
       setIsDialogOpen(false);
     } catch (err) {
@@ -67,7 +58,7 @@ export function CreditPayment({
           <select
             value={clientId ?? ''}
             onChange={handleSelectChange}
-            aria-invalid={Boolean(error)}
+            aria-invalid={Boolean(customerError)}
             className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Selecciona un cliente...</option>
@@ -96,8 +87,8 @@ export function CreditPayment({
         </Button>
       </div>
 
-      {error ? (
-        <p className="text-[11px] text-destructive px-0.5">{error}</p>
+      {customerError ? (
+        <p className="text-[11px] text-destructive px-0.5">{customerError}</p>
       ) : (
         <p className="text-[11px] text-muted-foreground px-0.5">
           Se registrará en la cuenta corriente del cliente seleccionado.

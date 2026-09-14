@@ -5,27 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CategoryFilter } from './CategoryFilter';
 import { ProductCard } from './ProductCard';
-import { Product } from '@/types/product';
+import { usePOSStore } from '@/stores/use-store-pos';
+// import { Product } from '@/types/product';
 
-interface ProductGridProps {
-  products: Product[];
-  onAdd: (product: Product) => void;
-  searchQuery: string;
-  onSearch: (q: string) => void;
-  activeCategory: string;
-  onCategory: (cat: string) => void;
-  categories: string[];
-}
+export function ProductGrid({}) {
+  const products = usePOSStore((s) => s.products);
+  const searchQuery = usePOSStore((s) => s.searchQuery);
+  const setSearchQuery = usePOSStore((s) => s.setSearchQuery);
+  const addToCart = usePOSStore((s) => s.addToCart);
 
-export function ProductGrid({
-  products,
-  onAdd,
-  searchQuery,
-  onSearch,
-  activeCategory,
-  onCategory,
-  categories,
-}: ProductGridProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden border-r">
       {/* Topbar */}
@@ -36,7 +24,7 @@ export function ProductGrid({
             placeholder="Buscar producto"
             className="pl-8 h-8 bg-background text-sm"
             value={searchQuery}
-            onChange={(e) => onSearch(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
@@ -46,11 +34,7 @@ export function ProductGrid({
       </div>
 
       {/* Categorías */}
-      <CategoryFilter
-        active={activeCategory}
-        categories={categories}
-        onChange={onCategory}
-      />
+      <CategoryFilter />
 
       {/* Grilla */}
       <div className="flex-1 overflow-y-auto p-4 grid grid-cols-4 gap-3 content-start">
@@ -61,7 +45,7 @@ export function ProductGrid({
           </div>
         ) : (
           products.map((p) => (
-            <ProductCard key={p.id} product={p} onAdd={onAdd} />
+            <ProductCard key={p.id} product={p} onAdd={addToCart} />
           ))
         )}
       </div>
