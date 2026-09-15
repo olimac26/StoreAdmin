@@ -19,7 +19,6 @@ export function CashPayment({ total }: CashPaymentProps) {
 
   return (
     <div className="space-y-2">
-      {/* Billetes rápidos */}
       <div className="grid grid-cols-4 gap-1">
         {QUICK_AMOUNTS.map((amount) => (
           <button
@@ -37,7 +36,6 @@ export function CashPayment({ total }: CashPaymentProps) {
         ))}
       </div>
 
-      {/* Input monto */}
       <Input
         type="number"
         placeholder="Monto recibido"
@@ -48,7 +46,6 @@ export function CashPayment({ total }: CashPaymentProps) {
         step={1000}
       />
 
-      {/* Cambio */}
       {hasInput && (
         <div
           className={cn(
