@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { navItems } from './nav-items';
+import { navItems } from '../../constants/nav-items';
 import { Badge } from '@/components/ui/badge';
 
 export function Sidebar() {

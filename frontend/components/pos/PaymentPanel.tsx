@@ -6,14 +6,8 @@ import { cn } from '@/lib/utils';
 import { CashPayment } from './methods/CashPayment';
 import { QRPayment } from './methods/QRPayment';
 import { CreditPayment } from './methods/CreditPayment';
-import { PayMethod } from '@/types/pos';
 import { usePOSStore } from '@/stores/use-store-pos';
-
-const METHODS: { id: PayMethod; label: string; icon: string }[] = [
-  { id: 'efectivo', label: 'Efectivo', icon: '💵' },
-  { id: 'transferencia', label: 'QR / Transfer', icon: '📲' },
-  { id: 'credito', label: 'Crédito', icon: '🧾' },
-];
+import { PAYMENT_METHODS } from '@/constants/payment-methods';
 
 interface PaymentPanelProps {
   total: number;
@@ -36,19 +30,19 @@ export function PaymentPanel({
     <div className="space-y-2.5">
       {/* Selector de método */}
       <div className="grid grid-cols-3 gap-1.5">
-        {METHODS.map((m) => (
+        {PAYMENT_METHODS.map(({ id, label, icon: Icon }) => (
           <button
-            key={m.id}
-            onClick={() => setPayMethod(m.id)}
+            key={id}
+            onClick={() => setPayMethod(id)}
             className={cn(
               'flex flex-col items-center gap-1 py-2 rounded-lg border text-xs transition-colors',
-              payMethod === m.id
+              payMethod === id
                 ? 'border-primary/40 bg-primary/5 text-primary'
                 : 'border-border text-muted-foreground hover:bg-muted',
             )}
           >
-            <span className="text-base">{m.icon}</span>
-            <span>{m.label}</span>
+            <Icon className="w-4 h-4" />
+            <span>{label}</span>
           </button>
         ))}
       </div>
