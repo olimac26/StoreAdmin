@@ -18,8 +18,6 @@ function normalizeCustomerName(value: string) {
 interface POSState {
   products: Product[];
   cartItems: CartItem[];
-  searchQuery: string;
-  activeCategory: string;
   payMethod: PayMethod;
   customerName: string;
   clientId: number | null;
@@ -28,8 +26,6 @@ interface POSState {
 
   setLoading: (loading: boolean) => void;
   setProducts: (products: Product[]) => void;
-  setSearchQuery: (query: string) => void;
-  setActiveCategory: (category: string) => void;
   setPayMethod: (method: PayMethod) => void;
   setCustomerName: (name: string) => void;
   setClientId: (id: number | null) => void;
@@ -44,8 +40,6 @@ interface POSState {
 export const usePOSStore = create<POSState>((set, get) => ({
   products: [],
   cartItems: [],
-  searchQuery: '',
-  activeCategory: 'todos',
   payMethod: 'efectivo',
   customerName: '',
   clientId: null,
@@ -54,8 +48,6 @@ export const usePOSStore = create<POSState>((set, get) => ({
 
   setLoading: (loading) => set({ loading }),
   setProducts: (products) => set({ products }),
-  setSearchQuery: (searchQuery) => set({ searchQuery }),
-  setActiveCategory: (activeCategory) => set({ activeCategory }),
   setClientId: (clientId) => set({ clientId }),
 
   setPayMethod: (payMethod) => {
