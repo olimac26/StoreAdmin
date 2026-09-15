@@ -8,7 +8,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
   const outOfStock = product.stock === 0;
-  const lowStock = product.stock > 0 && product.stock <= 5;
+  const lowStock = product.stock > 0 && product.stock <= product.minStock;
 
   return (
     <button
