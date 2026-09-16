@@ -8,9 +8,14 @@ import { CategoryFilter } from './CategoryFilter';
 import { ProductCard } from './ProductCard';
 import { usePOSStore } from '@/stores/use-store-pos';
 import { useDebounce } from '@/hooks/use-debounce';
+import { Product } from '@/types/product';
 
-export function ProductGrid() {
-  const products = usePOSStore((s) => s.products);
+interface ProductGridProps {
+  products: Product[];
+  loading: boolean;
+}
+
+export function ProductGrid({ products, loading }: ProductGridProps) {
   const addToCart = usePOSStore((s) => s.addToCart);
 
   const [search, setSearch] = useState('');
@@ -49,12 +54,23 @@ export function ProductGrid() {
       </div>
 
       <CategoryFilter
+        categories={
+          [
+            ...new Set(
+              products.map((product) => product.category).filter(Boolean),
+            ),
+          ] as string[]
+        }
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
       />
 
       <div className="flex-1 overflow-y-auto p-4 grid grid-cols-4 gap-3 content-start">
-        {filteredProducts.length === 0 ? (
+        {loading ? (
+          <div className="col-span-4 flex items-center justify-center py-16 text-sm text-muted-foreground">
+            Cargando productos...
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="col-span-4 flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
             <Search className="w-8 h-8" />
             <span className="text-sm">Sin resultados</span>

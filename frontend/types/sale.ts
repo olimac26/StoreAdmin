@@ -35,6 +35,7 @@ export interface SaleMetric {
 
 export interface CreateSalePayload {
   customer: string;
+  clientId?: number | null;
   status?: string;
   paymentMethod?: string;
   notes?: string;

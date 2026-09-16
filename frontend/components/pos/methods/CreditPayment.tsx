@@ -6,23 +6,20 @@ import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/use-clients';
 import { ClientFormDialog } from '@/components/clients/ClientFormDialog';
 import { ClientMutationPayload } from '@/types/client';
-import { usePOSStore } from '@/stores/use-store-pos';
+import { usePaymentContext } from '../PaymentContext';
 
 export function CreditPayment() {
   const { clients, create, loading } = useClients();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const setCustomerName = usePOSStore((s) => s.setCustomerName);
-  const customerError = usePOSStore((s) => s.customerError);
-  const setClientId = usePOSStore((s) => s.setClientId);
-  const clientId = usePOSStore((s) => s.clientId);
+  const { clientId, customerError, onClientChange, onCustomerNameChange } =
+    usePaymentContext();
 
   function handleSelectChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const selectedIdStr = event.target.value;
 
     if (selectedIdStr === '') {
-      setClientId(null);
-      setCustomerName('');
+      onClientChange(null);
+      onCustomerNameChange('');
       return;
     }
 
@@ -30,8 +27,8 @@ export function CreditPayment() {
     const client = clients.find((c) => c.id === selectedId);
 
     if (client) {
-      setClientId(client.id);
-      setCustomerName(client.name);
+      onClientChange(client.id);
+      onCustomerNameChange(client.name);
     }
   }
 
@@ -40,10 +37,10 @@ export function CreditPayment() {
       const newClient = await create(data);
 
       if (newClient && newClient.id) {
-        setClientId(newClient.id);
-        setCustomerName(newClient.name);
+        onClientChange(newClient.id);
+        onCustomerNameChange(newClient.name);
       } else {
-        setCustomerName(data.name);
+        onCustomerNameChange(data.name);
       }
       setIsDialogOpen(false);
     } catch (err) {

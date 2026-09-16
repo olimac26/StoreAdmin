@@ -1,26 +1,18 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { usePOSStore } from '@/stores/use-store-pos';
-import { useMemo } from 'react';
 
 interface CategoryFilterProps {
+  categories: string[];
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
 }
 
 export function CategoryFilter({
+  categories,
   selectedCategory,
   onSelectCategory,
 }: CategoryFilterProps) {
-  const products = usePOSStore((s) => s.products);
-
-  const categories = useMemo(() => {
-    return [
-      ...new Set(products.map((p) => p.category).filter(Boolean)),
-    ] as string[];
-  }, [products]);
-
   return (
     <div className="flex gap-2 px-4 py-2.5 border-b overflow-x-auto scrollbar-none">
       <button

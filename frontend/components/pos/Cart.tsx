@@ -1,19 +1,17 @@
-'use client';
-
 import { ShoppingCart } from 'lucide-react';
 import { CartItem } from './CartItem';
 import { CartSummary } from './CartSummary';
 import { PaymentPanel } from './PaymentPanel';
 import { usePOSStore } from '@/stores/use-store-pos';
-import { useSales } from '@/hooks/use-sales';
 
-export function Cart() {
-  const { createSale } = useSales();
+interface CartProps {
+  onSale: () => Promise<void>;
+}
 
+export function Cart({ onSale }: CartProps) {
   const items = usePOSStore((s) => s.cartItems);
   const changeQty = usePOSStore((s) => s.changeQty);
   const clearCart = usePOSStore((s) => s.clearCart);
-  const checkout = usePOSStore((s) => s.checkout);
 
   const subtotal = items.reduce((a, i) => a + i.price * i.qty, 0);
   const total = subtotal;
@@ -57,11 +55,7 @@ export function Cart() {
 
       <div className="border-t px-4 pt-3 pb-4 space-y-3">
         <CartSummary subtotal={subtotal} total={total} />
-        <PaymentPanel
-          total={total}
-          disabled={items.length === 0}
-          onCheckout={() => checkout(createSale)}
-        />
+        <PaymentPanel items={items} onSale={onSale} />
       </div>
     </div>
   );

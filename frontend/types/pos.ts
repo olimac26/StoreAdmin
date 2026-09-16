@@ -11,12 +11,3 @@ export interface SaleItemPayload {
   quantity: number;
   price: number;
 }
-
-export interface CreateSalePayload {
-  customer: string;
-  paymentMethod: PayMethod;
-  clientId: number | null;
-  client_id: number | null;
-  notes: string;
-  items: SaleItemPayload[];
-}

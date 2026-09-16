@@ -17,92 +17,83 @@ export function useProducts() {
     error: null,
   });
 
-  // Fetch products on mount
+  const fetchProducts = useCallback(async () => {
+    try {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const response = await apiFetch<{ success: boolean; data: Product[] }>(
+        API.ENDPOINTS.PRODUCTS,
+      );
+      setState((prev) => ({
+        ...prev,
+        products: response.data || [],
+        loading: false,
+      }));
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        error:
+          error instanceof Error ? error.message : 'Error fetching products',
+        loading: false,
+      }));
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    void fetchProducts();
+  }, [fetchProducts]);
+
+  const create = useCallback(
+    async (data: Omit<Product, 'id'>) => {
+      console.log(data.minStock);
       try {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
-        const response = await apiFetch<{ success: boolean; data: Product[] }>(
-          API.ENDPOINTS.PRODUCTS,
-        );
-        setState((prev) => ({
-          ...prev,
-          products: response.data || [],
-          loading: false,
-        }));
+        const response = await apiFetch<{
+          success: boolean;
+          data: { id: number };
+        }>(API.ENDPOINTS.PRODUCTS, {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+
+        if (response.success) {
+          // Refetch products to get the new one with all data
+          await fetchProducts();
+        }
       } catch (error) {
         setState((prev) => ({
           ...prev,
           error:
-            error instanceof Error ? error.message : 'Error fetching products',
-          loading: false,
+            error instanceof Error ? error.message : 'Error creating product',
         }));
       }
-    };
+    },
+    [fetchProducts],
+  );
 
-    fetchProducts();
-  }, []);
+  const update = useCallback(
+    async (id: number, data: Partial<Product>) => {
+      try {
+        const response = await apiFetch<{ success: boolean }>(
+          API.ENDPOINTS.PRODUCT(id),
+          {
+            method: 'PUT',
+            body: JSON.stringify(data),
+          },
+        );
 
-  const create = useCallback(async (data: Omit<Product, 'id'>) => {
-    console.log(data.minStock);
-    try {
-      const response = await apiFetch<{
-        success: boolean;
-        data: { id: number };
-      }>(API.ENDPOINTS.PRODUCTS, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-
-      if (response.success) {
-        // Refetch products to get the new one with all data
-        const productsResponse = await apiFetch<{
-          success: boolean;
-          data: Product[];
-        }>(API.ENDPOINTS.PRODUCTS);
+        if (response.success) {
+          // Refetch to ensure data is consistent
+          await fetchProducts();
+        }
+      } catch (error) {
         setState((prev) => ({
           ...prev,
-          products: productsResponse.data || [],
+          error:
+            error instanceof Error ? error.message : 'Error updating product',
         }));
       }
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        error:
-          error instanceof Error ? error.message : 'Error creating product',
-      }));
-    }
-  }, []);
-
-  const update = useCallback(async (id: number, data: Partial<Product>) => {
-    try {
-      const response = await apiFetch<{ success: boolean }>(
-        API.ENDPOINTS.PRODUCT(id),
-        {
-          method: 'PUT',
-          body: JSON.stringify(data),
-        },
-      );
-
-      if (response.success) {
-        // Refetch to ensure data is consistent
-        const productsResponse = await apiFetch<{
-          success: boolean;
-          data: Product[];
-        }>(API.ENDPOINTS.PRODUCTS);
-        setState((prev) => ({
-          ...prev,
-          products: productsResponse.data || [],
-        }));
-      }
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        error:
-          error instanceof Error ? error.message : 'Error updating product',
-      }));
-    }
-  }, []);
+    },
+    [fetchProducts],
+  );
 
   const remove = useCallback(async (id: number) => {
     try {
@@ -132,6 +123,7 @@ export function useProducts() {
     products: state.products,
     loading: state.loading,
     error: state.error,
+    refetch: fetchProducts,
     create,
     update,
     remove,
