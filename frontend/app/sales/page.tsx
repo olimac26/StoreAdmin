@@ -2,10 +2,12 @@ import { MetricCard } from '@/components/sales/MetricCards';
 import { OrdersTable } from '@/components/sales/OrdersTable';
 import { SalesChart } from '@/components/sales/SalesChart';
 import { TopProducts } from '@/components/sales/TopProducts';
+import { SalesProvider } from '@/contexts/sales-context';
 
 export default function SalesPage() {
   return (
-    <div className="space-y-6">
+    <SalesProvider>
+      <div className="space-y-6">
       <h1 className="text-lg font-semibold">Resumen del día</h1>
 
       <div className="grid grid-cols-4 gap-4">
@@ -34,7 +36,8 @@ export default function SalesPage() {
         </div>
       </div>
 
-      <OrdersTable />
-    </div>
+        <OrdersTable />
+      </div>
+    </SalesProvider>
   );
 }
